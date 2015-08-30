@@ -1,25 +1,41 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'BPITKey'
+            keyPassword 'Excalibur9'
+            storeFile file('D:/Research/Misc/bpitkey.jks')
+            storePassword 'Excalibur9'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion "23.0.0"
-
     defaultConfig {
         applicationId "com.nick.bpit"
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
+        debug {
+            signingConfig signingConfigs.config
+        }
+    }
+    productFlavors {
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.0.0'
+    compile 'com.google.android.gms:play-services:7.8.0'
 }
