@@ -1,382 +1,212 @@
 package com.nick.bpit;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.LoaderManager;
-import android.content.ContentResolver;
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.AsyncTask;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentSender;
 
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.text.TextUtils;
-import android.view.KeyEvent;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.model.people.Person;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * A login screen that offers login via email/password.
- */
 public class LoginActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnClickListener
 {
-    private static final int RC_SIGN_IN = 0;
+	private static final int RC_SIGN_IN = 0;
+    private static final int SIGN_IN_SUCCESS = 9001;
 
-    //private UserLoginTask mAuthTask = null;
-    private GoogleApiClient googleApiClient;
-    // UI references.
-    private AutoCompleteTextView mEmailView;
-    private EditText mPasswordView;
-    private View mProgressView;
-    private View mLoginFormView;
-    
+	private GoogleApiClient googleApiClient;
+	private boolean mIsResolving = false;
+	private boolean mShouldResolve = false;
+	private String TAG = "Google Sign In";
+
     @Override
-    protected void onCreate(Bundle savedInstanceState)
+	protected void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_login);
+
+		googleApiClient = buildGoogleApiClient();
+        SignInButton signInButton = (SignInButton) findViewById(R.id.gSignIn);
+        signInButton.setStyle(SignInButton.SIZE_WIDE, SignInButton.COLOR_DARK);
+		signInButton.setOnClickListener(this);
+	}
+
+    private GoogleApiClient buildGoogleApiClient()
     {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API, Plus.PlusOptions.builder().build())
+                .addScope(Plus.SCOPE_PLUS_LOGIN);
 
-        googleApiClient = new GoogleApiClient.Builder(this)
-                                   .addConnectionCallbacks(this)
-                                   .addOnConnectionFailedListener(this).addApi(Plus.API)
-                                   .addScope(new Scope(Scopes.PROFILE))
-                                   .build();
-        // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        return builder.build();
+    }
 
-        //populateAutoComplete();
-        
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener()
+	@Override
+	public void onClick(View v)
+	{
+		switch (v.getId())
+		{
+			case R.id.gSignIn:
+                Toast.makeText(LoginActivity.this, "Button click detected", Toast.LENGTH_SHORT).show();
+                onSignInClicked();
+				break;
+		}
+	}
+
+	private void onSignInClicked()
+	{
+		mShouldResolve = true;
+		googleApiClient.connect();
+	}
+
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+        //if(googleApiClient.isConnected())
+		    googleApiClient.connect();
+    }
+
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+        if(googleApiClient.isConnected())
+            googleApiClient.disconnect();
+	}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed: " + connectionResult);
+		if (!mIsResolving && mShouldResolve)
+		{
+			if (connectionResult.hasResolution())
+			{
+				try
+				{
+					connectionResult.startResolutionForResult(this, RC_SIGN_IN);
+					mIsResolving = true;
+				}
+				catch (IntentSender.SendIntentException e)
+				{
+					Log.e(TAG, "Could not resolve ConnectionResult.", e);
+					mIsResolving = false;
+					googleApiClient.connect();
+				}
+			}
+			else
+			{
+				showErrorDialog(connectionResult);
+			}
+		}
+	}
+
+	void showErrorDialog(ConnectionResult result)
+	{
+		int errorCode = result.getErrorCode();
+		if(GooglePlayServicesUtil.isUserRecoverableError(errorCode))
         {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent)
+            GooglePlayServicesUtil.getErrorDialog(errorCode, this, RC_SIGN_IN, new DialogInterface.OnCancelListener()
             {
-                if (id == R.id.login || id == EditorInfo.IME_NULL)
+                @Override
+                public void onCancel(DialogInterface dialog)
                 {
-                    attemptLogin();
-                    return true;
+                    mShouldResolve = false;
                 }
-                return false;
-            }
-        });
-        
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                attemptLogin();
-            }
-        });
-        
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
-    }
-
-    @Override
-    protected void onStop()
-    {
-        super.onStop();
-        googleApiClient.connect();
-    }
-
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
-        googleApiClient.disconnect();
-
-    }
-    /*
-    private void populateAutoComplete()
-    {
-        getLoaderManager().initLoader(0, null, this);
-    }
-    
-    */
-    /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
-     */
-    public void attemptLogin()
-    {
-       /* if (mAuthTask != null)
-        {
-            return;
-        }
-        */
-        // Reset errors.
-        mEmailView.setError(null);
-        mPasswordView.setError(null);
-        
-        // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
-        
-        boolean cancel = false;
-        View focusView = null;
-        
-        // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password))
-        {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
-            cancel = true;
-        }
-        
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email))
-        {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
-            cancel = true;
-        }
-        else if (!isEmailValid(email))
-        {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
-            cancel = true;
-        }
-        
-        if (cancel)
-        {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView.requestFocus();
+            }).show();
         }
         else
         {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-           // mAuthTask = new UserLoginTask(email, password);
-           // mAuthTask.execute((Void) null);
+            String errorString = "Google Services Error";
+            Toast.makeText(this, errorString, Toast.LENGTH_SHORT).show();
+
+            mShouldResolve = false;
+
         }
+	}
+
+	void showSignedOutUI()
+	{
+		new AlertDialog.Builder(this).setTitle("Success").setMessage("You have succesfully logged out").setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+		{
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+
+			}
+		}).setIcon(android.R.drawable.ic_dialog_info).show();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+		Log.d(TAG, "onActivityResult: "+ requestCode + ":" +resultCode+":"+data );
+		switch (requestCode)
+		{
+            case RC_SIGN_IN:
+                if(resultCode!=RESULT_OK)
+				mShouldResolve = false;
+                break;
+            case SIGN_IN_SUCCESS:
+                if(googleApiClient.isConnected())
+                {
+                    Plus.AccountApi.clearDefaultAccount(googleApiClient);
+                    Plus.AccountApi.revokeAccessAndDisconnect(googleApiClient);
+                    googleApiClient = buildGoogleApiClient();
+                    googleApiClient.connect();
+                    break;
+                }
+                showSignedOutUI();
+		}
+		mIsResolving = false;
+		googleApiClient.connect();
+	}
+
+	@Override
+	public void onConnected(Bundle bundle)
+	{
+		mShouldResolve = false;
+		showSignedInUI();
+	}
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
-    
-    private boolean isEmailValid(String email)
-    {
-        // Replace this with your own logic
-        return email.contains("@");
-    }
-    
-    private boolean isPasswordValid(String password)
-    {
-        // Replace this with your own logic
-        return password.length() > 4;
-    }
-    
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    public void showProgress(final boolean show)
-    {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2)
+
+    void showSignedInUI()
+	{
+        if(Plus.PeopleApi.getCurrentPerson(googleApiClient)!=null)
         {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-            
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1).setListener(new AnimatorListenerAdapter()
-            {
-                @Override
-                public void onAnimationEnd(Animator animation)
-                {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-            
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0).setListener(new AnimatorListenerAdapter()
-            {
-                @Override
-                public void onAnimationEnd(Animator animation)
-                {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
+            Intent intent = new Intent(this, MainActivity.class);
+            Bundle bundle = new Bundle();
+            Person person = Plus.PeopleApi.getCurrentPerson(googleApiClient);
+            String personName = person.getDisplayName();
+            String email = Plus.AccountApi.getAccountName(googleApiClient);
+            //String personPhoto = person.getImage().getUrl();
+            //String personGooglePlusProfile = person.getUrl();
+            Toast.makeText(LoginActivity.this, personName+" "+email, Toast.LENGTH_SHORT).show();
+            bundle.putString("Email", email);
+            bundle.putString("Name", personName);
+            intent.putExtras(bundle);
+            startActivityForResult(intent, SIGN_IN_SUCCESS);
         }
         else
         {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            Toast.makeText(this, "No User Found", Toast.LENGTH_SHORT).show();
         }
-    }
-    /*
-    @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle)
-    {
-        return new CursorLoader(this,
-                                       // Retrieve data rows for the device user's 'profile' contact.
-                                       Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI, ContactsContract.Contacts.Data.CONTENT_DIRECTORY), ProfileQuery.PROJECTION,
-                
-                                       // Select only email addresses.
-                                       ContactsContract.Contacts.Data.MIMETYPE + " = ?", new String[]{ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE},
-                
-                                       // Show primary email addresses first. Note that there won't be
-                                       // a primary email address if the user hasn't specified one.
-                                       ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
-    }
-    
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor)
-    {
-        List<String> emails = new ArrayList<String>();
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast())
-        {
-            emails.add(cursor.getString(ProfileQuery.ADDRESS));
-            cursor.moveToNext();
-        }
-        
-        addEmailsToAutoComplete(emails);
-    }
-    
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader)
-    {
-        
-    }
-*/
-    @Override
-    public void onConnected(Bundle bundle)
-    {
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i)
-    {
-
-    }
-
-    @Override
-    public void onClick(View v)
-    {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult)
-    {
-
-    }
-    
-    private interface ProfileQuery
-    {
-        String[] PROJECTION = {ContactsContract.CommonDataKinds.Email.ADDRESS, ContactsContract.CommonDataKinds.Email.IS_PRIMARY,};
-        
-        int ADDRESS = 0;
-        int IS_PRIMARY = 1;
-    }
-    
-    
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection)
-    {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(LoginActivity.this, android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-        
-        mEmailView.setAdapter(adapter);
-    }
-    
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    /*
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean>
-    {
-        
-        private final String mEmail;
-        private final String mPassword;
-        
-        UserLoginTask(String email, String password)
-        {
-            mEmail = email;
-            mPassword = password;
-        }
-        
-        @Override
-        protected Boolean doInBackground(Void... params)
-        {
-            //  attempt authentication against a network service.
-            
-            try
-            {
-                // Simulate network access.
-                Thread.sleep(2000);
-            }
-            catch (InterruptedException e)
-            {
-                return false;
-            }
-            
-            for (String credential : DUMMY_CREDENTIALS)
-            {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail))
-                {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-            
-            //  register the new account here.
-            return true;
-        }
-        
-        @Override
-        protected void onPostExecute(final Boolean success)
-        {
-            mAuthTask = null;
-            showProgress(false);
-            
-            if (success)
-            {
-                finish();
-            }
-            else
-            {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-        
-        @Override
-        protected void onCancelled()
-        {
-            mAuthTask = null;
-            showProgress(false);
-        }
-    }
-    */
+	}
 }
 

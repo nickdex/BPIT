@@ -6,7 +6,7 @@ android {
         config {
             keyAlias 'BPITKey'
             keyPassword 'Excalibur9'
-            storeFile file('D:/Research/Misc/bpitkey.jks')
+            storeFile file('/home/nick/Key/bpitkey.jks')
             storePassword 'Excalibur9'
         }
     }
