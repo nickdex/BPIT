@@ -1,30 +1,29 @@
 package com.nick.bpit;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.nick.bpit.server.ServerMessageData;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
- * interface.
- */
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+
 public class MessageFragment extends android.support.v4.app.ListFragment
 {
     
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
-    
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private final String TAG = "Message Fragment";
+    private static final String PROJECT_NUMBER = "662517051362";
+
+    private static GoogleCloudMessaging gcm;
+    private AsyncTask<Void, Void, String> sendTask;
     
     private OnFragmentInteractionListener mListener;
     
@@ -59,10 +58,11 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         */
         
         // TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<ServerMessageData.DummyItem>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS));
+        //setListAdapter(new ArrayAdapter<ServerMessageData.DummyItem>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS));
     }
     
-    
+
+
     @Override
     public void onAttach(Activity activity)
     {

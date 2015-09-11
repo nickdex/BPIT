@@ -12,38 +12,23 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 
 public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
-    
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
+    private static final String PROJECT_NUMBER = "662517051362";
+    private static final String TAG = "Main Activity";
     SectionsPagerAdapter mSectionsPagerAdapter;
     GoogleApiClient googleApiClient;
-    
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
+    private GCMClientManager clientManager;
+
     ViewPager mViewPager;
     
     @Override
@@ -85,19 +70,34 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             // this tab is selected.
             actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
         }
+        clientManager = new GCMClientManager(this, PROJECT_NUMBER);
+        clientManager.registerIfNeeded(new GCMClientManager.RegistrationCompleteHandler()
+        {
+            @Override
+            public void onSuccess(String registrationId, boolean isNewRegistration)
+            {
+                Toast.makeText(MainActivity.this, registrationId, Toast.LENGTH_LONG).show();
+                //SEND Async device registration to your backend server
+                //POST to backend server with user id and device id
+            }
+
+            @Override
+            public void onFailure(String ex)
+            {
+                super.onFailure(ex);
+                Log.i(TAG, "GCM registration failed" );
+                //click again or perform back-off when retrying
+            }
+        });
     }
 
     private GoogleApiClient buildGoogleApiClient()
     {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Plus.API, Plus.PlusOptions.builder().build())
-                .addScope(Plus.SCOPE_PLUS_LOGIN);
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
 
         return builder.build();
     }
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         {
             case R.id.signOut:
                 Intent intent = new Intent();
-                setResult(RESULT_OK,intent);
+                setResult(RESULT_OK, intent);
                 finish();
                 break;
             case R.id.action_settings:
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
         return super.onOptionsItemSelected(item);
     }
-    
+
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
     {
@@ -135,12 +135,12 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         // the ViewPager.
         mViewPager.setCurrentItem(tab.getPosition());
     }
-    
+
     @Override
     public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
     {
     }
-    
+
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
     {
@@ -175,19 +175,19 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     {
 
     }
-    
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter
     {
-        
+
         public SectionsPagerAdapter(FragmentManager fm)
         {
             super(fm);
         }
-        
+
         @Override
         public Fragment getItem(int position)
         {
@@ -201,16 +201,16 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 case 2:
                     return SendToAdminFragment.newInstance(position + 1);
             }
-            return SendToAdminFragment.newInstance(position+1);
+            return SendToAdminFragment.newInstance(position + 1);
         }
-        
+
         @Override
         public int getCount()
         {
             // Show 3 total pages.
             return 3;
         }
-        
+
         @Override
         public CharSequence getPageTitle(int position)
         {
