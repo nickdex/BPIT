@@ -43,7 +43,7 @@
         </activity>
 
         <receiver
-            android:name=".GCMBroadcastReceiver"
+            android:name=".gcm.GCMBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             android:enabled="true"
             android:exported="true" >
@@ -56,7 +56,7 @@
         </receiver>
 
         <service
-            android:name=".GcmMessageHandler"
+            android:name=".gcm.GcmMessageHandler"
             android:exported="false" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />

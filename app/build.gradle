@@ -6,12 +6,12 @@ android {
         config {
             keyAlias 'BPITKey'
             keyPassword 'Excalibur9'
-            storeFile file('/home/nick/Key/bpitkey.jks')
+            storeFile file('D:\\Research\\Misc\\bpitkey.jks')
             storePassword 'Excalibur9'
         }
     }
     compileSdkVersion 23
-    buildToolsVersion "23.0.0"
+    buildToolsVersion "23.0.1"
     defaultConfig {
         applicationId "com.nick.bpit"
         minSdkVersion 17
@@ -36,6 +36,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.0.0'
+    compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'com.google.android.gms:play-services:7.8.0'
 }

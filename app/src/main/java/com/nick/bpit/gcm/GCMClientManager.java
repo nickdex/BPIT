@@ -1,4 +1,4 @@
-package com.nick.bpit;
+package com.nick.bpit.gcm;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -14,10 +14,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
+import com.nick.bpit.Config;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class GCMClientManager
+public class GCMClientManager implements Config
 {
     private static final String TAG = "GCMClientManager";
     private static final String PROPERTY_REG_ID = "registration_id";
@@ -28,6 +30,7 @@ public class GCMClientManager
     private GoogleCloudMessaging gcm;
     private String regId;
     private AsyncTask<Void,Void, String> sendTask;
+    private AtomicInteger msgId = new AtomicInteger();
 
     public Context getContext()
     {
@@ -122,16 +125,16 @@ public class GCMClientManager
         return registrationId;
     }
 
-    private void storeRegistrationId(Context context, String regid)
+    private void storeRegistrationId(Context context, String regId)
     {
         final SharedPreferences sharedPreferences = getGCMPreferences(context);
         int appVersion = getAppVersion(context);
-        Log.i(TAG, "Saving regId on app version : " +appVersion);
+        Log.i(TAG, "Saving regId on app version : " + appVersion);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(PROPERTY_REG_ID, regid);
+        editor.putString(PROPERTY_REG_ID, regId);
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
         editor.apply();
-        editor.commit();
+        //editor.commit();
     }
 
     private static int getAppVersion(Context context)
@@ -172,11 +175,11 @@ public class GCMClientManager
                 Bundle data = new Bundle();
                 data.putString("ACTION", action);
                 data.putString("CLIENT_MESSAGE", "Hello Server");
-                // Put logic for id generation
+                String id = Integer.toString(msgId.incrementAndGet());
                 try
                 {
-                    Log.d(TAG, "message_id: " );
-                    gcm.send(projectNumber + "@gcm.googleapis.com", "id", data);
+                    Log.d(TAG, "message_id: " + id);
+                    gcm.send(projectNumber + "@gcm.googleapis.com", id, data);
 
                     Log.d(TAG, "gcm send is a success");
                 }

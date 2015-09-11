@@ -1,4 +1,4 @@
-package com.nick.bpit;
+package com.nick.bpit.gcm;
 
 import android.content.Context;
 import android.content.Intent;

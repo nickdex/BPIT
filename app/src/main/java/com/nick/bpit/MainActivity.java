@@ -20,14 +20,14 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
+import com.nick.bpit.gcm.GCMClientManager;
 
 public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
-    private static final String PROJECT_NUMBER = "662517051362";
+
     private static final String TAG = "Main Activity";
     SectionsPagerAdapter mSectionsPagerAdapter;
     GoogleApiClient googleApiClient;
-    private GCMClientManager clientManager;
 
     ViewPager mViewPager;
     
@@ -70,30 +70,16 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             // this tab is selected.
             actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
         }
-        clientManager = new GCMClientManager(this, PROJECT_NUMBER);
-        clientManager.registerIfNeeded(new GCMClientManager.RegistrationCompleteHandler()
-        {
-            @Override
-            public void onSuccess(String registrationId, boolean isNewRegistration)
-            {
-                Toast.makeText(MainActivity.this, registrationId, Toast.LENGTH_LONG).show();
-                //SEND Async device registration to your backend server
-                //POST to backend server with user id and device id
-            }
 
-            @Override
-            public void onFailure(String ex)
-            {
-                super.onFailure(ex);
-                Log.i(TAG, "GCM registration failed" );
-                //click again or perform back-off when retrying
-            }
-        });
     }
 
     private GoogleApiClient buildGoogleApiClient()
     {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this)
+                                                  .addConnectionCallbacks(this)
+                                                  .addOnConnectionFailedListener(this)
+                                                  .addApi(Plus.API, Plus.PlusOptions.builder().build())
+                                                  .addScope(Plus.SCOPE_PLUS_LOGIN);
 
         return builder.build();
     }

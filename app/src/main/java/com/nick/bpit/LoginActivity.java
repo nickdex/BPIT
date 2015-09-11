@@ -18,16 +18,19 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.nick.bpit.gcm.GCMClientManager;
+import com.nick.bpit.server.RegisterUserToServer;
 
-public class LoginActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnClickListener
+public class LoginActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnClickListener, Config
 {
-    private static final int RC_SIGN_IN = 0;
-    private static final int SIGN_IN_SUCCESS = 9001;
 
+
+    private GCMClientManager clientManager;
     private GoogleApiClient googleApiClient;
     private boolean mIsResolving = false;
     private boolean mShouldResolve = false;
     private String TAG = "Google Sign In";
+    private RegisterUserToServer server = new RegisterUserToServer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -39,11 +42,17 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
         SignInButton signInButton = (SignInButton) findViewById(R.id.gSignIn);
         signInButton.setStyle(SignInButton.SIZE_WIDE, SignInButton.COLOR_DARK);
         signInButton.setOnClickListener(this);
+        clientManager = new GCMClientManager(this, Config.PROJECT_NUMBER);
+
     }
 
     private GoogleApiClient buildGoogleApiClient()
     {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this)
+                                                  .addConnectionCallbacks(this)
+                                                  .addOnConnectionFailedListener(this)
+                                                  .addApi(Plus.API, Plus.PlusOptions.builder().build())
+                                                  .addScope(Plus.SCOPE_PLUS_LOGIN);
 
         return builder.build();
     }
@@ -56,11 +65,28 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
             Bundle bundle = new Bundle();
             Person person = Plus.PeopleApi.getCurrentPerson(googleApiClient);
             String personName = person.getDisplayName();
-            String email = Plus.AccountApi.getAccountName(googleApiClient);
-            
+            final String email = Plus.AccountApi.getAccountName(googleApiClient);
+
             //String personPhoto = person.getImage().getUrl();
             //String personGooglePlusProfile = person.getUrl();
             Toast.makeText(LoginActivity.this, personName + " " + email, Toast.LENGTH_SHORT).show();
+            clientManager.registerIfNeeded(new GCMClientManager.RegistrationCompleteHandler()
+            {
+                @Override
+                public void onSuccess(String registrationId, boolean isNewRegistration)
+                {
+                    server.sendRegId.execute(email, registrationId);
+                    //if required, send device id to server
+                }
+
+                @Override
+                public void onFailure(String ex)
+                {
+                    super.onFailure(ex);
+                    Log.i(TAG, "GCM registration failed");
+                    //click again or perform back-off when retrying
+                }
+            });
             bundle.putString("Email", email);
             bundle.putString("Name", personName);
             intent.putExtras(bundle);

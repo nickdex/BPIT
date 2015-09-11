@@ -1,4 +1,4 @@
-package com.nick.bpit;
+package com.nick.bpit.gcm;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Bundle;
 
 import com.google.android.gms.gcm.GcmListenerService;
+import com.nick.bpit.R;
 
 public class GcmMessageHandler extends GcmListenerService
 {

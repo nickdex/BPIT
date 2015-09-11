@@ -20,7 +20,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
     private final String TAG = "Message Fragment";
-    private static final String PROJECT_NUMBER = "662517051362";
+
 
     private static GoogleCloudMessaging gcm;
     private AsyncTask<Void, Void, String> sendTask;
@@ -110,7 +110,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     public interface OnFragmentInteractionListener
     {
         // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+        void onFragmentInteraction(String id);
     }
     
 }
