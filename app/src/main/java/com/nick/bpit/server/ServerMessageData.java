@@ -5,48 +5,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Helper class for providing sample content for user interfaces created by
- * Android template wizards.
- * <p/>
- * TODO: Replace all uses of this class before publishing your app.
- */
+
 public class ServerMessageData
 {
-    
-    /**
-     * An array of sample (dummy) items.
-     */
-    public static List<DummyItem> ITEMS = new ArrayList<DummyItem>();
-    
-    /**
-     * A map of sample (dummy) items, by ID.
-     */
-    public static Map<String, DummyItem> ITEM_MAP = new HashMap<String, DummyItem>();
+
+    public static List<Message> ITEMS = new ArrayList<Message>();
+
+    public static Map<String, Message> ITEM_MAP = new HashMap<String, Message>();
     
     static
     {
         // Add 3 sample items.
-        addItem(new DummyItem("1", "Bunk"));
-        addItem(new DummyItem("2", "Test"));
-        addItem(new DummyItem("3", "Lab"));
+        addItem(new Message("1", "Bunk"));
+        addItem(new Message("2", "Test"));
+        addItem(new Message("3", "Lab"));
     }
     
-    private static void addItem(DummyItem item)
+    private static void addItem(Message item)
     {
         ITEMS.add(item);
         ITEM_MAP.put(item.id, item);
     }
-    
-    /**
-     * A dummy item representing a piece of content.
-     */
-    public static class DummyItem
+
+    public static class Message
     {
         public String id;
         public String content;
         
-        public DummyItem(String id, String content)
+        public Message(String id, String content)
         {
             this.id = id;
             this.content = content;

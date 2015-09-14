@@ -36,11 +36,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         fragment.setArguments(args);
         return fragment;
     }
-    
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
+
     public MessageFragment()
     {
     }
@@ -58,7 +54,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         */
         
         // TODO: Change Adapter to display your content
-        //setListAdapter(new ArrayAdapter<ServerMessageData.DummyItem>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS));
+        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS));
     }
     
 

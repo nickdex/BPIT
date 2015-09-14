@@ -10,4 +10,9 @@
 	      android:title="@string/action_signOut"
 	      app:showAsAction="never"
 		/>
+	<item android:id="@+id/refresh"
+	      android:title="@string/refresh"
+	      android:icon="@drawable/ic_refresh_white"
+	      app:showAsAction="ifRoom"
+	      />
 </menu>

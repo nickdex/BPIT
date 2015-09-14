@@ -46,17 +46,6 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
 
     }
 
-    private GoogleApiClient buildGoogleApiClient()
-    {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this)
-                                                  .addConnectionCallbacks(this)
-                                                  .addOnConnectionFailedListener(this)
-                                                  .addApi(Plus.API, Plus.PlusOptions.builder().build())
-                                                  .addScope(Plus.SCOPE_PLUS_LOGIN);
-
-        return builder.build();
-    }
-
     void showSignedInUI()
     {
         if (Plus.PeopleApi.getCurrentPerson(googleApiClient) != null)
@@ -68,14 +57,14 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
             final String email = Plus.AccountApi.getAccountName(googleApiClient);
 
             //String personPhoto = person.getImage().getUrl();
-            //String personGooglePlusProfile = person.getUrl();
-            Toast.makeText(LoginActivity.this, personName + " " + email, Toast.LENGTH_SHORT).show();
+            Log.i(TAG, personName + '%' + email);
             clientManager.registerIfNeeded(new GCMClientManager.RegistrationCompleteHandler()
             {
                 @Override
                 public void onSuccess(String registrationId, boolean isNewRegistration)
                 {
                     server.sendRegId.execute(email, registrationId);
+                    //task can only be executed once, add logic for repeated sign out and sign in
                     //if required, send device id to server
                 }
 
@@ -94,7 +83,7 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
         }
         else
         {
-            Toast.makeText(this, "No User Found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this, "No User Found", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -104,10 +93,16 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
         switch (v.getId())
         {
             case R.id.gSignIn:
-                Toast.makeText(LoginActivity.this, "Button click detected", Toast.LENGTH_SHORT).show();
                 onSignInClicked();
                 break;
         }
+    }
+
+    private GoogleApiClient buildGoogleApiClient()
+    {
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
+
+        return builder.build();
     }
 
     private void onSignInClicked()
@@ -177,9 +172,7 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
         {
             String errorString = "Google Services Error";
             Toast.makeText(this, errorString, Toast.LENGTH_SHORT).show();
-
             mShouldResolve = false;
-
         }
     }
 

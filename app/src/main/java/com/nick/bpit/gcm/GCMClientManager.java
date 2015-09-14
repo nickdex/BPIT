@@ -29,8 +29,28 @@ public class GCMClientManager implements Config
     private String projectNumber;
     private GoogleCloudMessaging gcm;
     private String regId;
-    private AsyncTask<Void,Void, String> sendTask;
+    private AsyncTask<Void, Void, String> sendTask;
     private AtomicInteger msgId = new AtomicInteger();
+
+    public GCMClientManager(Activity activity, String projectNumber)
+    {
+        this.activity = activity;
+        this.projectNumber = projectNumber;
+        this.gcm = GoogleCloudMessaging.getInstance(activity);
+    }
+
+    private static int getAppVersion(Context context)
+    {
+        try
+        {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            return packageInfo.versionCode;
+        }
+        catch (PackageManager.NameNotFoundException ex)
+        {
+            throw new RuntimeException("Could not get package name : " + ex);
+        }
+    }
 
     public Context getContext()
     {
@@ -42,30 +62,13 @@ public class GCMClientManager implements Config
         return activity;
     }
 
-
-    public static abstract class RegistrationCompleteHandler
-    {
-        public abstract void onSuccess(String registrationId, boolean isNewRegistration);
-        public void onFailure(String ex)
-        {
-            Log.e(TAG, ex);
-        }
-    }
-
-    public GCMClientManager(Activity activity, String projectNumber)
-    {
-        this.activity = activity;
-        this.projectNumber = projectNumber;
-        this.gcm = GoogleCloudMessaging.getInstance(activity);
-    }
-
     public void registerIfNeeded(final RegistrationCompleteHandler handler)
     {
-        if(checkPlayServices())
+        if (checkPlayServices())
         {
             regId = getRegistrationId(getContext());
 
-            if(regId.isEmpty())
+            if (regId.isEmpty())
                 registerInBackground(handler);
             else
             {
@@ -88,7 +91,7 @@ public class GCMClientManager implements Config
             {
                 try
                 {
-                    if(gcm == null)
+                    if (gcm == null)
                         gcm = GoogleCloudMessaging.getInstance(getContext());
                     InstanceID instanceID = InstanceID.getInstance(getContext());
                     regId = instanceID.getToken(projectNumber, GoogleCloudMessaging.INSTANCE_ID_SCOPE);
@@ -98,7 +101,7 @@ public class GCMClientManager implements Config
                 }
                 catch (IOException ex)
                 {
-                    handler.onFailure("Error : "+ex.getMessage());
+                    handler.onFailure("Error : " + ex.getMessage());
                 }
                 return regId;
             }
@@ -117,7 +120,7 @@ public class GCMClientManager implements Config
     {
         final SharedPreferences sharedPreferences = getGCMPreferences(context);
         String registrationId = sharedPreferences.getString(PROPERTY_REG_ID, "");
-        if(registrationId.isEmpty())
+        if (registrationId.isEmpty())
         {
             Log.i(TAG, "App version Changed.");
             return "";
@@ -137,26 +140,12 @@ public class GCMClientManager implements Config
         //editor.commit();
     }
 
-    private static int getAppVersion(Context context)
-    {
-        try
-        {
-            PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
-        }
-        catch (PackageManager.NameNotFoundException ex)
-        {
-            throw new RuntimeException("Could not get package name : "+ ex);
-        }
-    }
-
     private boolean checkPlayServices()
     {
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getContext());
-        if(resultCode != ConnectionResult.SUCCESS)
+        if (resultCode != ConnectionResult.SUCCESS)
         {
-            if(GooglePlayServicesUtil.isUserRecoverableError(resultCode))
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode))
                 GooglePlayServicesUtil.getErrorDialog(resultCode, getActivity(), PLAY_SERVICES_RESOLUTION_REQUEST).show();
             else
                 Log.i(TAG, "This device is not supported.");
@@ -185,7 +174,7 @@ public class GCMClientManager implements Config
                 }
                 catch (Exception e)
                 {
-                    Log.d(TAG, "Exception: "+e);
+                    Log.d(TAG, "Exception: " + e);
                     e.printStackTrace();
                 }
                 return "Sent Message";
@@ -199,11 +188,21 @@ public class GCMClientManager implements Config
                 Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
             }
         };
-        sendTask.execute(null, null, null);
+        sendTask.execute();
     }
 
     private SharedPreferences getGCMPreferences(Context context)
     {
         return getContext().getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
+    }
+
+    public static abstract class RegistrationCompleteHandler
+    {
+        public abstract void onSuccess(String registrationId, boolean isNewRegistration);
+
+        public void onFailure(String ex)
+        {
+            Log.e(TAG, ex);
+        }
     }
 }
