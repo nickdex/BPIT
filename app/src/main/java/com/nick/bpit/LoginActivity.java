@@ -62,7 +62,7 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
                 @Override
                 public void onSuccess(String registrationId, boolean isNewRegistration)
                 {
-                    server.sendRegId.execute(email, registrationId);
+                    new RegisterUserToServer().execute(email, registrationId);
                     //task can only be executed once, add logic for repeated sign out and sign in
                     //if required, send device id to server
                 }
@@ -177,7 +177,7 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
 
     void showSignedOutUI()
     {
-        new AlertDialog.Builder(this).setTitle("Success").setMessage("You have succesfully logged out").setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+        new AlertDialog.Builder(this).setTitle("Success").setMessage("You have successfully logged out").setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)
