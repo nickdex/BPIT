@@ -5,9 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Nik on 8/30/2015.
- */
 public class ServerMemberData
 {
     public static List<Member> ITEMS = new ArrayList<>();

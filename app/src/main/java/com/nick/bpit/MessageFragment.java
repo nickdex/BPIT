@@ -1,6 +1,8 @@
 package com.nick.bpit;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,20 +15,26 @@ import com.nick.bpit.server.ServerMessageData;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 public class MessageFragment extends android.support.v4.app.ListFragment
 {
     
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
-    private final String TAG = "Message Fragment";
-
-
     private static GoogleCloudMessaging gcm;
+    private static final String TAG = "Message Fragment";
     private AsyncTask<Void, Void, String> sendTask;
-    
+    public static ArrayAdapter messageAdapter;
     private OnFragmentInteractionListener mListener;
     
+    public MessageFragment()
+    {
+    }
+
     // TODO: Rename and change types of parameters
     public static MessageFragment newInstance(int sectionNumber)
     {
@@ -36,27 +44,23 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         fragment.setArguments(args);
         return fragment;
     }
-
-    public MessageFragment()
-    {
-    }
     
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
+
        /* if (getArguments() != null)
         {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         */
-        
+        messageAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS);
         // TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS));
+        setListAdapter(messageAdapter);
+
     }
-    
 
 
     @Override
@@ -89,7 +93,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).id);
+            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).getTimestamp());
         }
     }
     
@@ -105,7 +109,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
      */
     public interface OnFragmentInteractionListener
     {
-        // TODO: Update argument type and name
+
         void onFragmentInteraction(String id);
     }
     

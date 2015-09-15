@@ -9,39 +9,52 @@ import java.util.Map;
 public class ServerMessageData
 {
 
-    public static List<Message> ITEMS = new ArrayList<Message>();
+    public static List<Message> ITEMS = new ArrayList<>();
 
-    public static Map<String, Message> ITEM_MAP = new HashMap<String, Message>();
+    public static Map<String, Message> ITEM_MAP = new HashMap<>();
+
     
-    static
-    {
-        // Add 3 sample items.
-        addItem(new Message("1", "Bunk"));
-        addItem(new Message("2", "Test"));
-        addItem(new Message("3", "Lab"));
-    }
-    
-    private static void addItem(Message item)
+    public static void addItem(Message item)
     {
         ITEMS.add(item);
-        ITEM_MAP.put(item.id, item);
+        ITEM_MAP.put(item.timestamp, item);
     }
 
     public static class Message
     {
-        public String id;
-        public String content;
-        
-        public Message(String id, String content)
+        private String timestamp;
+        private String body;
+
+        public String getBody()
         {
-            this.id = id;
-            this.content = content;
+            return body;
+        }
+
+        public void setBody(String body)
+        {
+            this.body = body;
+        }
+
+        public String getTimestamp()
+        {
+            return timestamp;
+        }
+
+        public void setTimestamp(String timestamp)
+        {
+            this.timestamp = timestamp;
+        }
+
+        public Message(String timestamp, String body)
+        {
+            this.timestamp = timestamp;
+            this.body = body;
         }
         
         @Override
         public String toString()
         {
-            return content;
+            return body;
         }
     }
 }

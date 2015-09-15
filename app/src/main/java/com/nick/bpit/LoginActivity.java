@@ -30,20 +30,19 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
     private boolean mIsResolving = false;
     private boolean mShouldResolve = false;
     private String TAG = "Google Sign In";
-    private RegisterUserToServer server = new RegisterUserToServer();
+    private RegisterUserToServer server;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        server = new RegisterUserToServer();
         googleApiClient = buildGoogleApiClient();
         SignInButton signInButton = (SignInButton) findViewById(R.id.gSignIn);
         signInButton.setStyle(SignInButton.SIZE_WIDE, SignInButton.COLOR_DARK);
         signInButton.setOnClickListener(this);
         clientManager = new GCMClientManager(this, Config.PROJECT_NUMBER);
-
     }
 
     void showSignedInUI()

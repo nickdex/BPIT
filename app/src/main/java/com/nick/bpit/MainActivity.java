@@ -2,7 +2,10 @@ package com.nick.bpit;
 
 import java.util.Locale;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
@@ -15,12 +18,12 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
-import com.nick.bpit.gcm.GCMClientManager;
+import com.nick.bpit.handler.DatabaseHandler;
+import com.nick.bpit.handler.MessageHandler;
 
 public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
@@ -28,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     private static final String TAG = "Main Activity";
     SectionsPagerAdapter mSectionsPagerAdapter;
     GoogleApiClient googleApiClient;
+    static public Context context;
 
     ViewPager mViewPager;
     
@@ -36,11 +40,11 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = getApplicationContext();
         googleApiClient = buildGoogleApiClient();
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -112,6 +116,40 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        context.registerReceiver(messageReceiver, new IntentFilter("message"));
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        context.unregisterReceiver(messageReceiver);
+    }
+
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            Bundle data = MessageHandler.formatMessage(intent.getExtras());
+            DatabaseHandler databaseHandler = new DatabaseHandler(context);
+            databaseHandler.insertMessage(data);
+            Log.i(TAG, "New Item added");
+            MessageFragment.messageAdapter.notifyDataSetChanged();
+        }
+    };
+
+    public static void updateActivity(Bundle data)
+    {
+        Intent intent = new Intent("message");
+        intent.putExtras(data);
+        context.sendBroadcast(intent);
     }
 
     @Override
@@ -187,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 case 2:
                     return SendToAdminFragment.newInstance(position + 1);
             }
-            return SendToAdminFragment.newInstance(position + 1);
+            return null;
         }
 
         @Override
