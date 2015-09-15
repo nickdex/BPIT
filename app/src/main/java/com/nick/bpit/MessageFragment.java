@@ -1,33 +1,40 @@
 package com.nick.bpit;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.nick.bpit.server.ServerMessageData;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
- * interface.
- */
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 public class MessageFragment extends android.support.v4.app.ListFragment
 {
     
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
-    
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-    
+    private static GoogleCloudMessaging gcm;
+    private static final String TAG = "Message Fragment";
+    private AsyncTask<Void, Void, String> sendTask;
+    public static ArrayAdapter messageAdapter;
     private OnFragmentInteractionListener mListener;
     
+    public MessageFragment()
+    {
+    }
+
     // TODO: Rename and change types of parameters
     public static MessageFragment newInstance(int sectionNumber)
     {
@@ -38,31 +45,24 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         return fragment;
     }
     
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
-    public MessageFragment()
-    {
-    }
-    
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        
+
        /* if (getArguments() != null)
         {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         */
-        
+        messageAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS);
         // TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<ServerMessageData.DummyItem>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS));
+        setListAdapter(messageAdapter);
+
     }
-    
-    
+
+
     @Override
     public void onAttach(Activity activity)
     {
@@ -93,7 +93,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).id);
+            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).getTimestamp());
         }
     }
     
@@ -109,8 +109,8 @@ public class MessageFragment extends android.support.v4.app.ListFragment
      */
     public interface OnFragmentInteractionListener
     {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+
+        void onFragmentInteraction(String id);
     }
     
 }

@@ -29,6 +29,14 @@ public class MemberFragment extends android.support.v4.app.ListFragment
     
     private OnFragmentInteractionListener mListener;
     
+    /**
+     * Mandatory empty constructor for the fragment manager to instantiate the
+     * fragment (e.g. upon screen orientation changes).
+     */
+    public MemberFragment()
+    {
+    }
+    
     // TODO: Rename and change types of parameters
     public static MemberFragment newInstance(int sectionNumber)
     {
@@ -37,14 +45,6 @@ public class MemberFragment extends android.support.v4.app.ListFragment
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
         return fragment;
-    }
-    
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
-    public MemberFragment()
-    {
     }
     
     @Override
@@ -59,7 +59,7 @@ public class MemberFragment extends android.support.v4.app.ListFragment
         }
         */
         // TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<ServerMemberData.Member>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMemberData.ITEMS));
+        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMemberData.ITEMS));
     }
     
     
@@ -110,7 +110,7 @@ public class MemberFragment extends android.support.v4.app.ListFragment
     public interface OnFragmentInteractionListener
     {
         // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+        void onFragmentInteraction(String id);
     }
     
 }

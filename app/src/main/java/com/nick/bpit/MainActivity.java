@@ -2,6 +2,10 @@ package com.nick.bpit;
 
 import java.util.Locale;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
@@ -11,30 +15,24 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.plus.Plus;
+import com.nick.bpit.handler.DatabaseHandler;
+import com.nick.bpit.handler.MessageHandler;
+
+public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
-    
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
+
+    private static final String TAG = "Main Activity";
     SectionsPagerAdapter mSectionsPagerAdapter;
-    
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
+    GoogleApiClient googleApiClient;
+    static public Context context;
+
     ViewPager mViewPager;
     
     @Override
@@ -42,11 +40,11 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+        context = getApplicationContext();
+        googleApiClient = buildGoogleApiClient();
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -76,17 +74,28 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             // this tab is selected.
             actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
         }
+
     }
-    
-    
+
+    private GoogleApiClient buildGoogleApiClient()
+    {
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this)
+                                                  .addConnectionCallbacks(this)
+                                                  .addOnConnectionFailedListener(this)
+                                                  .addApi(Plus.API, Plus.PlusOptions.builder().build())
+                                                  .addScope(Plus.SCOPE_PLUS_LOGIN);
+
+        return builder.build();
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -94,16 +103,55 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings)
+
+        switch (id)
         {
-            return true;
+            case R.id.signOut:
+                Intent intent = new Intent();
+                setResult(RESULT_OK, intent);
+                finish();
+                break;
+            case R.id.action_settings:
+                return true;
         }
-        
+
         return super.onOptionsItemSelected(item);
     }
-    
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        context.registerReceiver(messageReceiver, new IntentFilter("message"));
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        context.unregisterReceiver(messageReceiver);
+    }
+
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            Bundle data = MessageHandler.formatMessage(intent.getExtras());
+            DatabaseHandler databaseHandler = new DatabaseHandler(context);
+            databaseHandler.insertMessage(data);
+            Log.i(TAG, "New Item added");
+            MessageFragment.messageAdapter.notifyDataSetChanged();
+        }
+    };
+
+    public static void updateActivity(Bundle data)
+    {
+        Intent intent = new Intent("message");
+        intent.putExtras(data);
+        context.sendBroadcast(intent);
+    }
+
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
     {
@@ -111,12 +159,12 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         // the ViewPager.
         mViewPager.setCurrentItem(tab.getPosition());
     }
-    
+
     @Override
     public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
     {
     }
-    
+
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
     {
@@ -133,19 +181,37 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     {
 
     }
-    
+
+    @Override
+    public void onConnected(Bundle bundle)
+    {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i)
+    {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult)
+    {
+
+    }
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter
     {
-        
+
         public SectionsPagerAdapter(FragmentManager fm)
         {
             super(fm);
         }
-        
+
         @Override
         public Fragment getItem(int position)
         {
@@ -159,16 +225,16 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 case 2:
                     return SendToAdminFragment.newInstance(position + 1);
             }
-            return SendToAdminFragment.newInstance(position+1);
+            return null;
         }
-        
+
         @Override
         public int getCount()
         {
             // Show 3 total pages.
             return 3;
         }
-        
+
         @Override
         public CharSequence getPageTitle(int position)
         {
