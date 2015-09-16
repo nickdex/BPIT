@@ -14,7 +14,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
-import com.nick.bpit.Config;
+import com.nick.bpit.server.Config;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,16 +26,14 @@ public class GCMClientManager implements Config
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private Activity activity;
-    private String projectNumber;
     private GoogleCloudMessaging gcm;
     private String regId;
     private AsyncTask<Void, Void, String> sendTask;
     private AtomicInteger msgId = new AtomicInteger();
 
-    public GCMClientManager(Activity activity, String projectNumber)
+    public GCMClientManager(Activity activity)
     {
         this.activity = activity;
-        this.projectNumber = projectNumber;
         this.gcm = GoogleCloudMessaging.getInstance(activity);
     }
 
@@ -94,7 +92,7 @@ public class GCMClientManager implements Config
                     if (gcm == null)
                         gcm = GoogleCloudMessaging.getInstance(getContext());
                     InstanceID instanceID = InstanceID.getInstance(getContext());
-                    regId = instanceID.getToken(projectNumber, GoogleCloudMessaging.INSTANCE_ID_SCOPE);
+                    regId = instanceID.getToken(PROJECT_NUMBER, GoogleCloudMessaging.INSTANCE_ID_SCOPE);
                     Log.i(TAG, regId);
 
                     storeRegistrationId(getContext(), regId);
@@ -113,7 +111,7 @@ public class GCMClientManager implements Config
                 if (regId != null)
                     handler.onSuccess(regId, true);
             }
-        }.execute(null, null, null);
+        }.execute();
     }
 
     private String getRegistrationId(Context context)
@@ -154,22 +152,18 @@ public class GCMClientManager implements Config
         return true;
     }
 
-    private void sendMessage(final String action)
+    public void sendMessage(final Bundle data)
     {
         sendTask = new AsyncTask<Void, Void, String>()
         {
             @Override
             protected String doInBackground(Void... params)
             {
-                Bundle data = new Bundle();
-                data.putString("ACTION", action);
-                data.putString("CLIENT_MESSAGE", "Hello Server");
                 String id = Integer.toString(msgId.incrementAndGet());
                 try
                 {
                     Log.d(TAG, "message_id: " + id);
-                    gcm.send(projectNumber + "@gcm.googleapis.com", id, data);
-
+                    gcm.send(PROJECT_NUMBER + "@gcm.googleapis.com", id, data);
                     Log.d(TAG, "gcm send is a success");
                 }
                 catch (Exception e)
@@ -185,6 +179,7 @@ public class GCMClientManager implements Config
             {
                 super.onPostExecute(result);
                 sendTask = null;
+                Log.d(TAG, "Result = " + result);
                 Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
             }
         };

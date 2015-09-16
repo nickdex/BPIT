@@ -26,7 +26,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
     private static GoogleCloudMessaging gcm;
-    private static final String TAG = "Message Fragment";
+    public static final String TAG = "MessageFragment";
     private AsyncTask<Void, Void, String> sendTask;
     public static ArrayAdapter messageAdapter;
     private OnFragmentInteractionListener mListener;
@@ -88,25 +88,15 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     public void onListItemClick(ListView l, View v, int position, long id)
     {
         super.onListItemClick(l, v, position, id);
-        
+        Log.d(TAG, "item click detected");
         if (null != mListener)
         {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).getTimestamp());
+            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).getTimestamp().toString());
         }
     }
-    
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+
     public interface OnFragmentInteractionListener
     {
 

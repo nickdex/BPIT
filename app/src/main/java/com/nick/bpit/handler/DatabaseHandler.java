@@ -3,13 +3,21 @@ package com.nick.bpit.handler;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.nick.bpit.Config;
+import com.nick.bpit.server.Config;
+import com.nick.bpit.server.ServerMemberData;
 import com.nick.bpit.server.ServerMessageData;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 
 public class DatabaseHandler extends SQLiteOpenHelper implements Config
@@ -20,6 +28,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
     private SQLiteDatabase database;
     private ContentValues contentValues = new ContentValues();
 
+
     public DatabaseHandler(Context context)
     {
         super(context, NAME, null, VERSION);
@@ -28,8 +37,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-        db.execSQL("create table if not exists " + MESSAGE_TABLE + " ( " + MESSAGE_TIME + " INTEGER PRIMARY KEY, " + MESSAGE_BODY + " TEXT);");
-        db.execSQL("create table if not exists " + MEMBER_TABLE + " ( " + MEMBER_EMAIL + " TEXT PRIMARY KEY, " + MEMBER_NAME + " TEXT);");
+        db.execSQL("create table if not exists " + MESSAGE_TABLE + " ( " + EMAIL + " TEXT, " + MESSAGE_BODY + " TEXT, " + TIMESTAMP + " INTEGER PRIMARY KEY " + ");");
+        db.execSQL("create table if not exists " + MEMBER_TABLE + " ( " + EMAIL + " TEXT PRIMARY KEY, " + MEMBER_NAME + " TEXT, " + MEMBER_TOKEN + " TEXT, " + TIMESTAMP + " INTEGER" + ");");
     }
 
     @Override
@@ -46,29 +55,92 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         ServerMessageData.ITEM_MAP.clear();
         database = getReadableDatabase();
         Cursor cursor = database.query(MESSAGE_TABLE, null, null, null, null, null, null);
+
         for (int i = 0; i < cursor.getCount(); i++)
         {
             cursor.moveToNext();
-            String timestamp = cursor.getString(0);
-            String message = cursor.getString(1);
-            ServerMessageData.addItem(new ServerMessageData.Message(timestamp, message));
+            cursor.getString(0);
+            cursor.getLong(1);
+            cursor.getString(2);
+            //ServerMessageData.addItem(new ServerMessageData.Message(data));
         }
         cursor.close();
     }
 
-    public void insertMessage(Bundle data)
+    public void getAllMembers()
     {
-        database = getWritableDatabase();
-        String timestamp = data.getString(MESSAGE_TIME);
-        String message = data.getString(MESSAGE_BODY);
-        contentValues.put(MESSAGE_BODY, message);
-        contentValues.put(MESSAGE_TIME, Long.parseLong(timestamp));
-        ServerMessageData.addItem(new ServerMessageData.Message(timestamp, message));
-        if (database.insert(MESSAGE_TABLE, null, contentValues) != -1)
-            Log.i(TAG, "Message inserted successfully");
-        else
-            Log.i(TAG, "Error in Message insertion");
+        ServerMemberData.ITEM_MAP.clear();
+        ServerMemberData.ITEMS.clear();
+        database = getReadableDatabase();
+        Cursor cursor = database.query(MEMBER_TABLE, null, null, null, null, null, null);
+        Bundle data = cursor.getExtras();
+        //TODO check for loop
+        for(String key : data.keySet())
+            Log.d(TAG, data.getString(key));
+
+
     }
 
+    public void insertMessage(Bundle data)
+    {
+        insert(data, MESSAGE_TABLE);
+    }
+
+    public void insertMember(Bundle data)
+    {
+        insert(data, MEMBER_TABLE);
+    }
+
+    private void insert(Bundle data, String table)
+    {
+        database = getWritableDatabase();
+        data = formatMessage(data);
+
+        for (String key : data.keySet())
+            if (!TIMESTAMP.equals(key))
+                contentValues.put(key, data.getString(key));
+            else
+                contentValues.put(key, data.getLong(key));
+
+        //debugging
+        for (String key : contentValues.keySet())
+            Log.d(TAG, key);
+
+        switch (table)
+        {
+            case MESSAGE_TABLE:
+                ServerMessageData.addItem(new ServerMessageData.Message(data));
+                break;
+            case MEMBER_TABLE:
+                ServerMemberData.addItem(new ServerMemberData.Member(data));
+        }
+        try
+        {
+            if (database.insertOrThrow(table, null, contentValues) != -1)
+                Log.i(TAG, table + " inserted successfully");
+        }
+        catch (SQLiteConstraintException e)
+        {
+            Log.e(TAG, data.getString(EMAIL) + " already exists");
+        }
+        catch (SQLiteException e)
+        {
+            Log.e(TAG, "SQL Operation Failure");
+        }
+    }
+
+    private Bundle formatMessage(Bundle data)
+    {
+        Long timestamp = Long.parseLong(getDateTime());
+        Log.i(TAG, "Timestamp is " + timestamp);
+        data.putLong(TIMESTAMP, timestamp);
+        return data;
+    }
+
+    private String getDateTime()
+    {
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);
+        return dateFormat.format(new Date());
+    }
 
 }

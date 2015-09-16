@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -18,29 +17,48 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
+import com.nick.bpit.gcm.GCMClientManager;
 import com.nick.bpit.handler.DatabaseHandler;
-import com.nick.bpit.handler.MessageHandler;
+import com.nick.bpit.handler.MessageProcessor;
+import com.nick.bpit.server.Config;
+import com.nick.bpit.server.ServerMessageData;
 
 public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
 
     private static final String TAG = "Main Activity";
+    static public Context context;
     SectionsPagerAdapter mSectionsPagerAdapter;
     GoogleApiClient googleApiClient;
-    static public Context context;
-
     ViewPager mViewPager;
-    
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            Log.i(TAG, "New Announcement");
+            MessageFragment.messageAdapter.notifyDataSetChanged();
+        }
+    };
+
+    public static void updateActivity(Bundle data)
+    {
+        Intent intent = new Intent("message");
+        intent.putExtras(data);
+        context.sendBroadcast(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        context = getApplicationContext();
+        context = getApplication();
         googleApiClient = buildGoogleApiClient();
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -48,11 +66,11 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        
+
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        
+
         // When swiping between different sections, select the corresponding
         // tab. We can also use ActionBar.Tab#select() to do this if we have
         // a reference to the Tab.
@@ -64,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 actionBar.setSelectedNavigationItem(position);
             }
         });
-        
+
         // For each of the sections in the app, add a tab to the action bar.
         for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++)
         {
@@ -79,11 +97,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
     private GoogleApiClient buildGoogleApiClient()
     {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this)
-                                                  .addConnectionCallbacks(this)
-                                                  .addOnConnectionFailedListener(this)
-                                                  .addApi(Plus.API, Plus.PlusOptions.builder().build())
-                                                  .addScope(Plus.SCOPE_PLUS_LOGIN);
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
 
         return builder.build();
     }
@@ -132,26 +146,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         context.unregisterReceiver(messageReceiver);
     }
 
-    private BroadcastReceiver messageReceiver = new BroadcastReceiver()
-    {
-        @Override
-        public void onReceive(Context context, Intent intent)
-        {
-            Bundle data = MessageHandler.formatMessage(intent.getExtras());
-            DatabaseHandler databaseHandler = new DatabaseHandler(context);
-            databaseHandler.insertMessage(data);
-            Log.i(TAG, "New Item added");
-            MessageFragment.messageAdapter.notifyDataSetChanged();
-        }
-    };
-
-    public static void updateActivity(Bundle data)
-    {
-        Intent intent = new Intent("message");
-        intent.putExtras(data);
-        context.sendBroadcast(intent);
-    }
-
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
     {
@@ -171,15 +165,27 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
-    public void onFragmentInteraction(String id)
+    public void onFragmentInteraction(String Tag)
     {
+        switch (Tag)
+        {
+            case SendToAdminFragment.TAG:
+                Bundle data = new Bundle();
+                MessageProcessor processor = MessageProcessor.getInstance();
+                String message = ((EditText) findViewById(R.id.message)).getText().toString();
 
-    }
+                data.putString(Config.PAYLOAD_MESSAGE, message);
+                data.putString(Config.ACTION, Config.ACTION_BROADCAST);
 
-    @Override
-    public void onFragmentInteraction(Uri uri)
-    {
-
+                processor.processUpstreamMessage(data, MainActivity.this);
+                break;
+            case MessageFragment.TAG:
+                Log.d(TAG, "Click forwarded to activity");
+                break;
+            default:
+                Log.w(TAG, "Yet to implement");
+                break;
+        }
     }
 
     @Override

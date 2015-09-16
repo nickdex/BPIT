@@ -19,6 +19,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 import com.nick.bpit.gcm.GCMClientManager;
+import com.nick.bpit.handler.DatabaseHandler;
+import com.nick.bpit.handler.MessageProcessor;
+import com.nick.bpit.server.Config;
 import com.nick.bpit.server.RegisterUserToServer;
 
 public class LoginActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnClickListener, Config
@@ -30,19 +33,17 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
     private boolean mIsResolving = false;
     private boolean mShouldResolve = false;
     private String TAG = "Google Sign In";
-    private RegisterUserToServer server;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        server = new RegisterUserToServer();
         googleApiClient = buildGoogleApiClient();
         SignInButton signInButton = (SignInButton) findViewById(R.id.gSignIn);
         signInButton.setStyle(SignInButton.SIZE_WIDE, SignInButton.COLOR_DARK);
         signInButton.setOnClickListener(this);
-        clientManager = new GCMClientManager(this, Config.PROJECT_NUMBER);
+        clientManager = new GCMClientManager(this);
     }
 
     void showSignedInUI()
@@ -52,7 +53,7 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
             Intent intent = new Intent(this, MainActivity.class);
             Bundle bundle = new Bundle();
             Person person = Plus.PeopleApi.getCurrentPerson(googleApiClient);
-            String personName = person.getDisplayName();
+            final String personName = person.getDisplayName();
             final String email = Plus.AccountApi.getAccountName(googleApiClient);
 
             //String personPhoto = person.getImage().getUrl();
@@ -62,9 +63,14 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
                 @Override
                 public void onSuccess(String registrationId, boolean isNewRegistration)
                 {
-                    new RegisterUserToServer().execute(email, registrationId);
-                    //task can only be executed once, add logic for repeated sign out and sign in
-                    //if required, send device id to server
+                    Bundle data = new Bundle();
+                    MessageProcessor processor = MessageProcessor.getInstance();
+
+                    data.putString(PAYLOAD_EMAIL, email);
+                    data.putString(MEMBER_NAME, personName);
+                    data.putString(MEMBER_TOKEN, registrationId);
+                    data.putString(ACTION, ACTION_REGISTER);
+                    processor.processUpstreamMessage(data, LoginActivity.this);
                 }
 
                 @Override

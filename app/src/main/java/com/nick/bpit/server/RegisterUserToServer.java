@@ -3,8 +3,6 @@ package com.nick.bpit.server;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.nick.bpit.Config;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -15,12 +13,13 @@ import java.net.URLEncoder;
 public class RegisterUserToServer extends AsyncTask<String, Void, String> implements Config
 {
     private String TAG = "RegisterToServer";
+
     @Override
     protected String doInBackground(String... params)
     {
         String result = "";
         String email = params[0];
-        String registrationId = params[1];
+        String token = params[1];
 
         try
         {
@@ -35,8 +34,7 @@ public class RegisterUserToServer extends AsyncTask<String, Void, String> implem
                 result = "Invalid URL: " + APP_SERVER_URL;
             }
 
-            String temp = email + SEPARATOR + registrationId;
-            String record = URLEncoder.encode("record", "UTF-8") + "=" + URLEncoder.encode(temp, "UTF-8");
+            String record = URLEncoder.encode(REQUEST_PARAMETER_EMAIL, "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" + URLEncoder.encode(REQUEST_PARAMETER_TOKEN, "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8");
             byte[] bytes = record.getBytes();
             HttpURLConnection httpURLConnection = null;
             try
