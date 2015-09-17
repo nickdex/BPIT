@@ -12,8 +12,6 @@ import com.nick.bpit.server.ServerMemberData;
 
 public class MessageProcessor implements Config
 {
-
-
     private static final String TAG = "MessageProcessor";
     private static MessageProcessor instance = new MessageProcessor();
 
@@ -33,7 +31,7 @@ public class MessageProcessor implements Config
     public void processUpstreamMessage(Bundle data, Context context)
     {
         DatabaseHandler databaseHandler = new DatabaseHandler(context);
-        GCMClientManager gcmClientManager = new GCMClientManager((Activity) context);
+        GCMClientManager gcmClientManager = new GCMClientManager(context);
         gcmClientManager.sendMessage(data);
         String action = data.getString(ACTION);
         if (action != null)
@@ -42,7 +40,7 @@ public class MessageProcessor implements Config
             switch (action)
             {
                 case ACTION_REGISTER:
-                        databaseHandler.insertMember(data);
+                    databaseHandler.insertMember(data);
                     break;
                 case ACTION_BROADCAST:
                     databaseHandler.insertMessage(data);

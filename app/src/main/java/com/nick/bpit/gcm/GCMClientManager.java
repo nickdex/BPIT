@@ -25,16 +25,16 @@ public class GCMClientManager implements Config
     private static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private Activity activity;
+    private Context context;
     private GoogleCloudMessaging gcm;
     private String regId;
     private AsyncTask<Void, Void, String> sendTask;
     private AtomicInteger msgId = new AtomicInteger();
 
-    public GCMClientManager(Activity activity)
+    public GCMClientManager(Context context)
     {
-        this.activity = activity;
-        this.gcm = GoogleCloudMessaging.getInstance(activity);
+        this.context = context;
+        this.gcm = GoogleCloudMessaging.getInstance(context);
     }
 
     private static int getAppVersion(Context context)
@@ -52,12 +52,12 @@ public class GCMClientManager implements Config
 
     public Context getContext()
     {
-        return activity;
+        return context;
     }
 
     public Activity getActivity()
     {
-        return activity;
+        return (Activity)context;
     }
 
     public void registerIfNeeded(final RegistrationCompleteHandler handler)
