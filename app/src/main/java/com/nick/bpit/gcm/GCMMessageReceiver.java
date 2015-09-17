@@ -10,8 +10,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
+import com.nick.bpit.handler.MessageProcessor;
 import com.nick.bpit.server.Config;
-import com.nick.bpit.MainActivity;
 import com.nick.bpit.R;
 
 public class GCMMessageReceiver extends GcmListenerService implements Config
@@ -25,10 +25,8 @@ public class GCMMessageReceiver extends GcmListenerService implements Config
     {
         super.onMessageReceived(from, data);
         String message = data.getString(Config.MESSAGE_BODY);
-        //code for Announcement handling
-        MainActivity.updateActivity(data);
-
-        Log.i(TAG, "Message - " + message);
+        MessageProcessor processor = MessageProcessor.getInstance();
+        processor.processDownstreamMessage(data, getApplicationContext());
         createNotification(message);
     }
 

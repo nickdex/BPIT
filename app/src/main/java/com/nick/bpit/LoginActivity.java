@@ -81,9 +81,6 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
                     //click again or perform back-off when retrying
                 }
             });
-            bundle.putString("Email", email);
-            bundle.putString("Name", personName);
-            intent.putExtras(bundle);
             startActivityForResult(intent, SIGN_IN_SUCCESS);
         }
         else

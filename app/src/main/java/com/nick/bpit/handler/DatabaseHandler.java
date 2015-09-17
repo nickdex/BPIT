@@ -75,10 +75,10 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         Cursor cursor = database.query(MEMBER_TABLE, null, null, null, null, null, null);
         Bundle data = cursor.getExtras();
         //TODO check for loop
-        for(String key : data.keySet())
+        for (String key : data.keySet())
             Log.d(TAG, data.getString(key));
 
-
+        cursor.close();
     }
 
     public void insertMessage(Bundle data)
@@ -101,10 +101,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
                 contentValues.put(key, data.getString(key));
             else
                 contentValues.put(key, data.getLong(key));
-
-        //debugging
-        for (String key : contentValues.keySet())
-            Log.d(TAG, key);
 
         switch (table)
         {
