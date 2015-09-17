@@ -125,11 +125,19 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 setResult(RESULT_OK, intent);
                 finish();
                 break;
+            case R.id.refresh:
+                doRefresh();
+                break;
             case R.id.action_settings:
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void doRefresh()
+    {
+
     }
 
     @Override
