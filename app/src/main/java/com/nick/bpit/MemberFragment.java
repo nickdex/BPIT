@@ -18,21 +18,12 @@ import com.nick.bpit.server.ServerMemberData;
  */
 public class MemberFragment extends android.support.v4.app.ListFragment
 {
-    
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
-    
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-    
+    public static final String TAG = "MemberFragment";
     private OnFragmentInteractionListener mListener;
-    
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
+
+    public static ArrayAdapter memberAdapter;
+
     public MemberFragment()
     {
     }
@@ -58,8 +49,8 @@ public class MemberFragment extends android.support.v4.app.ListFragment
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         */
-        // TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMemberData.ITEMS));
+        memberAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMemberData.ITEMS);
+        setListAdapter(memberAdapter);
     }
     
     
@@ -93,20 +84,10 @@ public class MemberFragment extends android.support.v4.app.ListFragment
         {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(ServerMemberData.ITEMS.get(position).id);
+            mListener.onFragmentInteraction(ServerMemberData.ITEMS.get(position).getTimestamp().toString());
         }
     }
-    
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+
     public interface OnFragmentInteractionListener
     {
         // TODO: Update argument type and name
