@@ -27,8 +27,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
     private static final int VERSION = 1;
     private static final String TAG = "Database";
     private SQLiteDatabase database;
-    private ContentValues contentValues = new ContentValues();
-
 
     public DatabaseHandler(Context context)
     {
@@ -52,28 +50,51 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
 
     public void getAllMessages()
     {
-        //ServerMessageData.ITEMS.clear();
-        //ServerMessageData.ITEM_MAP.clear();
-        database = getReadableDatabase();
-        Cursor cursor = database.query(MESSAGE_TABLE, null, null, null, null, null, null);
-
-        //DEBUG_CODE
-        DatabaseUtils.dumpCursor(cursor);
-        Log.d(TAG, "show complete");
-        cursor.close();
-
+        ServerMessageData.ITEMS.clear();
+        ServerMessageData.ITEM_MAP.clear();
+        populateList(MESSAGE_TABLE);
     }
 
     public void getAllMembers()
     {
-        //ServerMemberData.ITEM_MAP.clear();
-        //ServerMemberData.ITEMS.clear();
-        database = getReadableDatabase();
-        Cursor cursor = database.query(MEMBER_TABLE, null, null, null, null, null, null);
+        ServerMemberData.ITEM_MAP.clear();
+        ServerMemberData.ITEMS.clear();
+        populateList(MEMBER_TABLE);
+    }
 
+    private void populateList(String table)
+    {
+        database = getReadableDatabase();
+        Bundle data = new Bundle();
+        String order = " DESC";
+        Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP + order);
         //DEBUG_CODE
-        DatabaseUtils.dumpCursor(cursor);
-        cursor.close();
+        if (DEBUG_FLAG)
+            DatabaseUtils.dumpCursor(cursor);
+        if (cursor != null && cursor.getCount() > 0)
+        {
+            do
+            {
+                cursor.moveToNext();
+                for (String col : cursor.getColumnNames())
+                    if (!TIMESTAMP.equals(col))
+                        data.putString(col, cursor.getString(cursor.getColumnIndex(col)));
+                    else
+                        data.putLong(col, cursor.getLong(cursor.getColumnIndex(col)));
+
+                switch (table)
+                {
+                    case MESSAGE_TABLE:
+                        ServerMessageData.addItem(new ServerMessageData.Message(data));
+                        break;
+                    case MEMBER_TABLE:
+                        ServerMemberData.addItem(new ServerMemberData.Member(data));
+                        break;
+                }
+                data.clear();
+            } while (!cursor.isLast());
+        }
+        //cursor.close();
     }
 
     public void insertMessage(Bundle data)
@@ -89,6 +110,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
     private void insert(Bundle data, String table)
     {
         database = getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
         data = formatMessage(data);
 
         for (String key : data.keySet())

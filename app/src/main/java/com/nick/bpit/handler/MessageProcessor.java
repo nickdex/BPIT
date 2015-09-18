@@ -13,6 +13,7 @@ import com.nick.bpit.server.ServerMemberData;
 public class MessageProcessor implements Config
 {
     private static final String TAG = "MessageProcessor";
+    //Singleton, Check whether this will cause conflicts when downstreaming and upstreaming simultaneously
     private static MessageProcessor instance = new MessageProcessor();
 
     public static MessageProcessor getInstance()
@@ -22,17 +23,19 @@ public class MessageProcessor implements Config
 
     public void processDownstreamMessage(Bundle data, Context context)
     {
+        DatabaseHandler databaseHandler = new DatabaseHandler(context);
         //DEBUG_CODE
         if(DEBUG_FLAG)
         {
-            Log.d(TAG, "Downstream Message");
+            Log.d(TAG, "Downstream Bundle");
             showBundle(data);
         }
+        else {
+            data.remove("collapse_key");
+            data.remove(ACTION);
+            databaseHandler.insertMessage(data);
+        }
 
-        DatabaseHandler databaseHandler = new DatabaseHandler(context);
-        data.remove("collapse_key");
-        data.remove(ACTION);
-        databaseHandler.insertMessage(data);
 
         //DEBUG_CODE
         if (DEBUG_FLAG)

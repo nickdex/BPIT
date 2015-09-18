@@ -93,12 +93,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
     }
 
-    private GoogleApiClient buildGoogleApiClient()
-    {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
-        return builder.build();
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -138,29 +132,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
-    protected void onResume()
-    {
-        super.onResume();
-        context.registerReceiver(messageReceiver, new IntentFilter("message"));
-    }
-
-    @Override
-    protected void onStop()
-    {
-        super.onStop();
-        context.unregisterReceiver(messageReceiver);
-    }
-
-    @Override
-    public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
-    {
-        // When the given tab is selected, switch to the corresponding page in
-        // the ViewPager.
-        mViewPager.setCurrentItem(tab.getPosition());
-    }
-
-
-    @Override
     public void onFragmentInteraction(String Tag)
     {
         switch (Tag)
@@ -169,9 +140,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 Bundle data = new Bundle();
                 MessageProcessor processor = MessageProcessor.getInstance();
                 String message = ((EditText) findViewById(R.id.message)).getText().toString();
-
                 Log.d(TAG, "Message input by user = " + message);
-
                 data.putString(Config.ACTION, Config.ACTION_BROADCAST);
                 data.putString(Config.PAYLOAD_MESSAGE, message);
                 processor.processUpstreamMessage(data, MainActivity.this);
@@ -186,6 +155,35 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 Log.w(TAG, "Yet to implement");
                 break;
         }
+    }
+
+    private GoogleApiClient buildGoogleApiClient()
+    {
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
+        return builder.build();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        context.registerReceiver(messageReceiver, new IntentFilter("message"));
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        context.unregisterReceiver(messageReceiver);
+    }
+
+
+    @Override
+    public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
+    {
+        // When the given tab is selected, switch to the corresponding page in
+        // the ViewPager.
+        mViewPager.setCurrentItem(tab.getPosition());
     }
 
     @Override
