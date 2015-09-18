@@ -23,10 +23,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.nick.bpit.gcm.GCMClientManager;
-import com.nick.bpit.handler.DatabaseHandler;
 import com.nick.bpit.handler.MessageProcessor;
 import com.nick.bpit.server.Config;
-import com.nick.bpit.server.ServerMessageData;
 
 public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
@@ -98,7 +96,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     private GoogleApiClient buildGoogleApiClient()
     {
         GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(Plus.API, Plus.PlusOptions.builder().build()).addScope(Plus.SCOPE_PLUS_LOGIN);
-
         return builder.build();
     }
 
@@ -137,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
     private void doRefresh()
     {
-
+        //TODO Refresh Logic
     }
 
     @Override
@@ -162,15 +159,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         mViewPager.setCurrentItem(tab.getPosition());
     }
 
-    @Override
-    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
-    {
-    }
-
-    @Override
-    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
-    {
-    }
 
     @Override
     public void onFragmentInteraction(String Tag)
@@ -182,12 +170,16 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 MessageProcessor processor = MessageProcessor.getInstance();
                 String message = ((EditText) findViewById(R.id.message)).getText().toString();
 
-                data.putString(Config.PAYLOAD_MESSAGE, message);
-                data.putString(Config.ACTION, Config.ACTION_BROADCAST);
+                Log.d(TAG, "Message input by user = " + message);
 
+                data.putString(Config.ACTION, Config.ACTION_BROADCAST);
+                data.putString(Config.PAYLOAD_MESSAGE, message);
                 processor.processUpstreamMessage(data, MainActivity.this);
                 break;
             case MessageFragment.TAG:
+                Log.d(TAG, "Click forwarded to activity");
+                break;
+            case MemberFragment.TAG:
                 Log.d(TAG, "Click forwarded to activity");
                 break;
             default:
@@ -199,25 +191,29 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     @Override
     public void onConnected(Bundle bundle)
     {
-
     }
 
     @Override
     public void onConnectionSuspended(int i)
     {
-
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult)
     {
-
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
+
+    @Override
+    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
+    {
+    }
+
+    @Override
+    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)
+    {
+    }
+
     public class SectionsPagerAdapter extends FragmentPagerAdapter
     {
 

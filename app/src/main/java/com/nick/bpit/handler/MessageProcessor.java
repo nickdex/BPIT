@@ -22,33 +22,59 @@ public class MessageProcessor implements Config
 
     public void processDownstreamMessage(Bundle data, Context context)
     {
+        //DEBUG_CODE
+        if(DEBUG_FLAG)
+        {
+            Log.d(TAG, "Downstream Message");
+            showBundle(data);
+        }
+
         DatabaseHandler databaseHandler = new DatabaseHandler(context);
-        databaseHandler.insertMessage(data);
         data.remove("collapse_key");
+        data.remove(ACTION);
+        databaseHandler.insertMessage(data);
+
+        //DEBUG_CODE
+        if (DEBUG_FLAG)
+        {
+            String key = data.getString(PAYLOAD_MESSAGE);
+            if (key != null)
+                switch (key)
+                {
+                    case SHOW_DB_MEMBERS:
+                        databaseHandler.getAllMembers();
+                        break;
+                    case SHOW_DB_MSGS:
+                        databaseHandler.getAllMessages();
+                        break;
+                    default:
+                        Log.d(TAG, "Normal message");
+                        break;
+                }
+        }
+
         MainActivity.updateActivity(data);
     }
 
-    public void processUpstreamMessage(Bundle data, Context context)
+    public void processUpstreamMessage(Bundle data, Activity activity)
     {
-        DatabaseHandler databaseHandler = new DatabaseHandler(context);
-        GCMClientManager gcmClientManager = new GCMClientManager(context);
-        gcmClientManager.sendMessage(data);
-        String action = data.getString(ACTION);
-        if (action != null)
+        GCMClientManager gcmClientManager = new GCMClientManager(activity);
+
+        //Changes to data have random chances to get applied for gcm send
+        //DEBUG_CODE
+        if (Config.DEBUG_FLAG)
         {
-            data.remove(ACTION);
-            switch (action)
-            {
-                case ACTION_REGISTER:
-                    databaseHandler.insertMember(data);
-                    break;
-                case ACTION_BROADCAST:
-                    databaseHandler.insertMessage(data);
-                    break;
-                default:
-                    Log.e(TAG, action + "Action unsupported");
-                    break;
-            }
+            Log.d(TAG, "Upstream Bundle");
+            data.putString(ACTION, ACTION_DEBUG);
+            showBundle(data);
         }
+
+        gcmClientManager.sendMessage(data);
+    }
+
+    private void showBundle(Bundle data)
+    {
+        for(String key: data.keySet())
+            Log.d(TAG, key+" = "+data.getString(key));
     }
 }

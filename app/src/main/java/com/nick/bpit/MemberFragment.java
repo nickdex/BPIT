@@ -18,10 +18,8 @@ import com.nick.bpit.server.ServerMemberData;
  */
 public class MemberFragment extends android.support.v4.app.ListFragment
 {
-    
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
+    public static final String TAG = "MemberFragment";
     private OnFragmentInteractionListener mListener;
 
     public static ArrayAdapter memberAdapter;

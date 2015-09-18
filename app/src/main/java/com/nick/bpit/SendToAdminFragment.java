@@ -89,7 +89,6 @@ public class SendToAdminFragment extends android.support.v4.app.Fragment impleme
 
     public interface OnFragmentInteractionListener
     {
-        // TODO: Update argument type and name
          void onFragmentInteraction(String id);
     }
     

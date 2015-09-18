@@ -25,16 +25,16 @@ public class GCMClientManager implements Config
     private static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private Context context;
+    private Activity activity;
     private GoogleCloudMessaging gcm;
     private String regId;
     private AsyncTask<Void, Void, String> sendTask;
     private AtomicInteger msgId = new AtomicInteger();
 
-    public GCMClientManager(Context context)
+    public GCMClientManager(Activity activity)
     {
-        this.context = context;
-        this.gcm = GoogleCloudMessaging.getInstance(context);
+        this.activity = activity;
+        this.gcm = GoogleCloudMessaging.getInstance(activity);
     }
 
     private static int getAppVersion(Context context)
@@ -52,12 +52,12 @@ public class GCMClientManager implements Config
 
     public Context getContext()
     {
-        return context;
+        return activity;
     }
 
     public Activity getActivity()
     {
-        return (Activity)context;
+        return activity;
     }
 
     public void registerIfNeeded(final RegistrationCompleteHandler handler)
@@ -93,7 +93,7 @@ public class GCMClientManager implements Config
                         gcm = GoogleCloudMessaging.getInstance(getContext());
                     InstanceID instanceID = InstanceID.getInstance(getContext());
                     regId = instanceID.getToken(PROJECT_NUMBER, GoogleCloudMessaging.INSTANCE_ID_SCOPE);
-                    Log.i(TAG, regId);
+                    Log.i(TAG, "Token = "+regId);
 
                     storeRegistrationId(getContext(), regId);
                 }
@@ -164,14 +164,13 @@ public class GCMClientManager implements Config
                 {
                     Log.d(TAG, "message_id: " + id);
                     gcm.send(PROJECT_NUMBER + "@gcm.googleapis.com", id, data);
-                    Log.d(TAG, "gcm send is a success");
                 }
                 catch (Exception e)
                 {
                     Log.d(TAG, "Exception: " + e);
                     e.printStackTrace();
                 }
-                return "Sent Message";
+                return "GCM send is a success";
             }
 
             @Override

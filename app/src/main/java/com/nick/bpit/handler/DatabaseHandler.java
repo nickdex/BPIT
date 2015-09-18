@@ -3,6 +3,7 @@ package com.nick.bpit.handler;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -51,33 +52,27 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
 
     public void getAllMessages()
     {
-        ServerMessageData.ITEMS.clear();
-        ServerMessageData.ITEM_MAP.clear();
+        //ServerMessageData.ITEMS.clear();
+        //ServerMessageData.ITEM_MAP.clear();
         database = getReadableDatabase();
         Cursor cursor = database.query(MESSAGE_TABLE, null, null, null, null, null, null);
 
-        for (int i = 0; i < cursor.getCount(); i++)
-        {
-            cursor.moveToNext();
-            cursor.getString(0);
-            cursor.getLong(1);
-            cursor.getString(2);
-            //ServerMessageData.addItem(new ServerMessageData.Message(data));
-        }
+        //DEBUG_CODE
+        DatabaseUtils.dumpCursor(cursor);
+        Log.d(TAG, "show complete");
         cursor.close();
+
     }
 
     public void getAllMembers()
     {
-        ServerMemberData.ITEM_MAP.clear();
-        ServerMemberData.ITEMS.clear();
+        //ServerMemberData.ITEM_MAP.clear();
+        //ServerMemberData.ITEMS.clear();
         database = getReadableDatabase();
         Cursor cursor = database.query(MEMBER_TABLE, null, null, null, null, null, null);
-        Bundle data = cursor.getExtras();
-        //TODO check for loop
-        for (String key : data.keySet())
-            Log.d(TAG, data.getString(key));
 
+        //DEBUG_CODE
+        DatabaseUtils.dumpCursor(cursor);
         cursor.close();
     }
 
