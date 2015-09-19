@@ -14,7 +14,7 @@ public class ServerMessageData implements Config
 
     public static List<Message> ITEMS = new ArrayList<>();
 
-    public static Map<Long, Message> ITEM_MAP = new HashMap<>();
+    public static Map<String, Message> ITEM_MAP = new HashMap<>();
 
     public static void addItem(Message item)
     {
@@ -24,14 +24,14 @@ public class ServerMessageData implements Config
 
     public static class Message
     {
-        private Long timestamp;
+        private String timestamp;
         private String body;
         private String email;
 
         public Message(Bundle data)
         {
             this.email = data.getString(EMAIL);
-            this.timestamp = data.getLong(TIMESTAMP);
+            this.timestamp = data.getString(TIMESTAMP);
             this.body = data.getString(MESSAGE_BODY);
         }
 
@@ -45,7 +45,7 @@ public class ServerMessageData implements Config
             return body;
         }
 
-        public Long getTimestamp()
+        public String getTimestamp()
         {
             return timestamp;
         }

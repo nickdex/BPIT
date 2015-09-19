@@ -23,8 +23,6 @@ public interface Config
 
     //Key
     String ACTION = "ACTION";
-    String PAYLOAD_EMAIL = "EMAIL";
-    String PAYLOAD_MESSAGE = "BODY";
     String TIMESTAMP = "TIMESTAMP";
     String EMAIL = "EMAIL";
     //MESSAGES

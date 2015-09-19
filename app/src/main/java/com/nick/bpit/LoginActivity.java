@@ -66,7 +66,7 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
                     Bundle data = new Bundle();
                     MessageProcessor processor = MessageProcessor.getInstance();
 
-                    data.putString(PAYLOAD_EMAIL, email);
+                    data.putString(EMAIL, email);
                     data.putString(MEMBER_NAME, personName);
                     data.putString(MEMBER_TOKEN, registrationId);
                     data.putString(ACTION, ACTION_REGISTER);

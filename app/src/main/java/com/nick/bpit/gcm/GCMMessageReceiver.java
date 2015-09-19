@@ -16,7 +16,7 @@ import com.nick.bpit.R;
 
 public class GCMMessageReceiver extends GcmListenerService implements Config
 {
-    public static final int NOTIFICATION_ID = 1000;
+
     private final String TAG = "GCM Message Handler";
 
 
@@ -24,17 +24,9 @@ public class GCMMessageReceiver extends GcmListenerService implements Config
     public void onMessageReceived(String from, Bundle data)
     {
         super.onMessageReceived(from, data);
-        String message = data.getString(Config.MESSAGE_BODY);
         MessageProcessor processor = MessageProcessor.getInstance();
         processor.processDownstreamMessage(data, getApplicationContext());
-        createNotification(message);
     }
 
-    private void createNotification(String message)
-    {
-        Context context = getBaseContext();
-        Notification notification = new Notification.Builder(context).setContentText(message).setContentTitle("Nick").setSmallIcon(R.mipmap.bpit).build();
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(NOTIFICATION_ID, notification);
-    }
+
 }

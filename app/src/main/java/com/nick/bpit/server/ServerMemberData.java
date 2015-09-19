@@ -23,7 +23,7 @@ public class ServerMemberData implements Config
 
     public static class Member
     {
-        private Long timestamp;
+        private String timestamp;
         private String name;
         private String email;
         private String token;
@@ -31,7 +31,7 @@ public class ServerMemberData implements Config
         public Member(Bundle data)
         {
             this.email = data.getString(EMAIL);
-            this.timestamp = data.getLong(TIMESTAMP);
+            this.timestamp = data.getString(TIMESTAMP);
             this.name = data.getString(MEMBER_NAME);
             this.token = data.getString(MEMBER_TOKEN);
 
@@ -42,7 +42,7 @@ public class ServerMemberData implements Config
             return token;
         }
 
-        public Long getTimestamp()
+        public String getTimestamp()
         {
             return timestamp;
         }

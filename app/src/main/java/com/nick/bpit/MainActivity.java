@@ -22,7 +22,7 @@ import android.widget.EditText;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
-import com.nick.bpit.gcm.GCMClientManager;
+import com.nick.bpit.handler.DatabaseHandler;
 import com.nick.bpit.handler.MessageProcessor;
 import com.nick.bpit.server.Config;
 
@@ -94,6 +94,15 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
+    protected void onStart()
+    {
+        super.onStart();
+        DatabaseHandler databaseHandler = new DatabaseHandler(this);
+        databaseHandler.getAllMessages();
+        databaseHandler.getAllMembers();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -142,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 String message = ((EditText) findViewById(R.id.message)).getText().toString();
                 Log.d(TAG, "Message input by user = " + message);
                 data.putString(Config.ACTION, Config.ACTION_BROADCAST);
-                data.putString(Config.PAYLOAD_MESSAGE, message);
+                data.putString(Config.MESSAGE_BODY, message);
                 processor.processUpstreamMessage(data, MainActivity.this);
                 break;
             case MessageFragment.TAG:
