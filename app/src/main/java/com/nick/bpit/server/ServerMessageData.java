@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,13 +13,13 @@ public class ServerMessageData implements Config
 {
     public final static String TAG = "ServerMessageData";
 
-    public static List<Message> ITEMS = new ArrayList<>();
+    public static LinkedList<Message> ITEMS = new LinkedList<>();
 
     public static Map<String, Message> ITEM_MAP = new HashMap<>();
 
     public static void addItem(Message item)
     {
-        ITEMS.add(item);
+        ITEMS.addFirst(item);
         ITEM_MAP.put(item.timestamp, item);
     }
 

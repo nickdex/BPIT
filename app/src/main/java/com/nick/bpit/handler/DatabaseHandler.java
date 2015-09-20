@@ -37,7 +37,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
     public void onCreate(SQLiteDatabase db)
     {
         db.execSQL("create table if not exists " + MESSAGE_TABLE + " ( " + EMAIL + " TEXT, " + MESSAGE_BODY + " TEXT, " + TIMESTAMP + " DATETIME PRIMARY KEY " + ");");
-        db.execSQL("create table if not exists " + MEMBER_TABLE + " ( " + EMAIL + " TEXT PRIMARY KEY, " + MEMBER_NAME + " TEXT, " + MEMBER_TOKEN + " TEXT, " + TIMESTAMP + " DATETIME" + ");");
+        db.execSQL("create table if not exists " + MEMBER_TABLE + " ( " + EMAIL + " TEXT PRIMARY KEY, " + MEMBER_NAME + " TEXT, " + TIMESTAMP + " DATETIME" + ");");
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         database = getReadableDatabase();
         Bundle data = new Bundle();
         String order = " DESC";
-        Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP + order);
+        Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP);
         //DEBUG_CODE
         if (DEBUG_FLAG)
             DatabaseUtils.dumpCursor(cursor);
@@ -77,7 +77,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
             {
                 cursor.moveToNext();
                 for (String col : cursor.getColumnNames())
-                        data.putString(col, cursor.getString(cursor.getColumnIndex(col)));
+                    data.putString(col, cursor.getString(cursor.getColumnIndex(col)));
 
                 switch (table)
                 {
@@ -110,20 +110,19 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         ContentValues contentValues = new ContentValues();
 
         for (String key : data.keySet())
-                contentValues.put(key, data.getString(key));
-
-        switch (table)
-        {
-            case MESSAGE_TABLE:
-                ServerMessageData.addItem(new ServerMessageData.Message(data));
-                break;
-            case MEMBER_TABLE:
-                ServerMemberData.addItem(new ServerMemberData.Member(data));
-        }
+            contentValues.put(key, data.getString(key));
         try
         {
             if (database.insertOrThrow(table, null, contentValues) != -1)
                 Log.i(TAG, table + " inserted successfully");
+            switch (table)
+            {
+                case MESSAGE_TABLE:
+                    ServerMessageData.addItem(new ServerMessageData.Message(data));
+                    break;
+                case MEMBER_TABLE:
+                    ServerMemberData.addItem(new ServerMemberData.Member(data));
+            }
         }
         catch (SQLiteConstraintException e)
         {

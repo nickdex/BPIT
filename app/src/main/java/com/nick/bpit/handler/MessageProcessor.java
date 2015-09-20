@@ -2,7 +2,11 @@ package com.nick.bpit.handler;
 
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -11,15 +15,19 @@ import com.nick.bpit.MainActivity;
 import com.nick.bpit.R;
 import com.nick.bpit.gcm.GCMClientManager;
 import com.nick.bpit.server.Config;
+import com.nick.bpit.server.ServerMessageData;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
 public class MessageProcessor implements Config
 {
-    public static final int NOTIFICATION_ID = 1000;
+    public static final int NOTIFICATION_ID_MSG = 1337;
+    public static final int NOTIFICATION_ID_MEM = 1338;
     private static final String TAG = "MessageProcessor";
     //Singleton, Check whether this will cause conflicts when downstreaming and upstreaming simultaneously
     private static MessageProcessor instance = new MessageProcessor();
@@ -39,19 +47,18 @@ public class MessageProcessor implements Config
             {
                 case ACTION_REGISTER:
                 {
-                    String content = data.getString(MEMBER_NAME) + " has joined us";
-                    createNotification(content, context);
-                    showBundle(data);
-                    data.remove("collapse_key");
-                    data.remove(ACTION);
+                    String name = data.getString(MEMBER_NAME);
+                    String isNewMem = data.getString(NEW_MEMBER);
+                    if (isNewMem != null && isNewMem.equals(TRUE))
+                        createNotification("New Member", name, context, NOTIFICATION_ID_MEM);
+                    formatDownstream(data);
                     databaseHandler.insertMember(data);
                     break;
                 }
                 case ACTION_BROADCAST:
                 {
-                    createNotification(msg_body, context);
-                    data.remove("collapse_key");
-                    data.remove(ACTION);
+                    createNotification("New Announcement", msg_body, context, NOTIFICATION_ID_MSG);
+                    formatDownstream(data);
                     databaseHandler.insertMessage(data);
                     break;
                 }
@@ -60,12 +67,10 @@ public class MessageProcessor implements Config
                     //DEBUG_CODE
                     Log.d(TAG, "Downstream Bundle");
                     showBundle(data);
-                    createNotification(ACTION_DEBUG, context);
                     if (msg_body != null)
                     {
                         switch (msg_body)
                         {
-
                             case SHOW_DB_MEMBERS:
                                 databaseHandler.getAllMembers();
                                 break;
@@ -84,40 +89,55 @@ public class MessageProcessor implements Config
             }
         else
             Log.e(TAG, "ACTION is null");
-
-
-        MainActivity.updateActivity(data);
     }
 
     public void processUpstreamMessage(Bundle data, Activity activity)
     {
         GCMClientManager gcmClientManager = new GCMClientManager(activity);
-        data = formatMessage(data);
-/*
-        //DEBUG_CODE
-        if (Config.DEBUG_FLAG)
+        String action = data.getString(ACTION);
+        if (action != null)
         {
-            Log.d(TAG, "Upstream Bundle");
-            data.putString(ACTION, ACTION_DEBUG);
-            showBundle(data);
-        }*/
-        //Changes to 'data' have random chances to get applied for gcm send
-        gcmClientManager.sendMessage(data);
+            switch (action)
+            {
+                case ACTION_REFRESH:
+                    DatabaseHandler databaseHandler = new DatabaseHandler(activity);
+                    databaseHandler.getAllMessages();
+                    databaseHandler.getAllMembers();
+                default:
+                    data = formatUpstream(data);
+                    gcmClientManager.sendMessage(data);
+            }
+        }
+        //Changes to 'data' after sendMessage call have random chances to get applied
     }
 
-    private void createNotification(String message, Context context)
+    private void createNotification(String title, String body, Context context, int id)
     {
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 1, new Intent("MAIN"), PendingIntent.FLAG_ONE_SHOT);
         NotificationCompat.Builder notification = new NotificationCompat.Builder(context);
-        notification.setContentText(message).setContentTitle("Nick").setSmallIcon(R.mipmap.bpit);
+        notification.setContentTitle(title).setContentText(body).setSmallIcon(R.drawable.small_icon).setContentIntent(pendingIntent).setAutoCancel(true);
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(NOTIFICATION_ID, notification.build());
+        notificationManager.notify(id, notification.build());
     }
 
-    private Bundle formatMessage(Bundle data)
+    private Bundle formatUpstream(Bundle data)
     {
         String timestamp = getDateTime();
         Log.i(TAG, "Timestamp is " + timestamp);
         data.putString(TIMESTAMP, timestamp);
+        Log.d(TAG, "Upstream Bundle");
+        showBundle(data);
+        return data;
+    }
+
+    private Bundle formatDownstream(Bundle data)
+    {
+        Log.d(TAG, "Downstream Bundle");
+        showBundle(data);
+        data.remove("from");
+        data.remove("collapse_key");
+        data.remove(ACTION);
+        data.remove(NEW_MEMBER);
         return data;
     }
 

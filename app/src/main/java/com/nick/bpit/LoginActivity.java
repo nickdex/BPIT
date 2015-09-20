@@ -5,8 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -19,10 +19,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 import com.nick.bpit.gcm.GCMClientManager;
-import com.nick.bpit.handler.DatabaseHandler;
 import com.nick.bpit.handler.MessageProcessor;
 import com.nick.bpit.server.Config;
-import com.nick.bpit.server.RegisterUserToServer;
 
 public class LoginActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnClickListener, Config
 {
@@ -51,7 +49,6 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
         if (Plus.PeopleApi.getCurrentPerson(googleApiClient) != null)
         {
             Intent intent = new Intent(this, MainActivity.class);
-            Bundle bundle = new Bundle();
             Person person = Plus.PeopleApi.getCurrentPerson(googleApiClient);
             final String personName = person.getDisplayName();
             final String email = Plus.AccountApi.getAccountName(googleApiClient);
@@ -65,12 +62,17 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
                 {
                     Bundle data = new Bundle();
                     MessageProcessor processor = MessageProcessor.getInstance();
+                    SharedPreferences.Editor editor = getSharedPreferences("OWNER", MODE_PRIVATE).edit();
+
+                    editor.putString(EMAIL, email);
+                    editor.putString(MEMBER_NAME, personName);
+                    editor.apply();
 
                     data.putString(EMAIL, email);
                     data.putString(MEMBER_NAME, personName);
-                    data.putString(MEMBER_TOKEN, registrationId);
                     data.putString(ACTION, ACTION_REGISTER);
                     processor.processUpstreamMessage(data, LoginActivity.this);
+                    Toast.makeText(LoginActivity.this, "Welcome " + personName, Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -178,18 +180,6 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
         }
     }
 
-    void showSignedOutUI()
-    {
-        new AlertDialog.Builder(this).setTitle("Success").setMessage("You have successfully logged out").setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
-        {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-
-            }
-        }).setIcon(android.R.drawable.ic_dialog_info).show();
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
@@ -210,7 +200,6 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
                     googleApiClient.connect();
                     break;
                 }
-                showSignedOutUI();
         }
         mIsResolving = false;
         googleApiClient.connect();

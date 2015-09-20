@@ -3,8 +3,7 @@ package com.nick.bpit.server;
 public interface Config
 {
     //Values
-    String ACTION_REGISTER = "REGISTER";
-    String ACTION_BROADCAST = "BROADCAST";
+
     String PROJECT_NUMBER = "662517051362";
     String APP_SERVER_URL = "http://192.168.0.113:8080/BPITServer/RegisterUser"; //include ip address of server
     int RC_SIGN_IN = 0;
@@ -13,6 +12,11 @@ public interface Config
     //DEBUG
     boolean DEBUG_FLAG = false;
     String ACTION_DEBUG = "DEBUG";
+    String ACTION_REGISTER = "REGISTER";
+    String ACTION_BROADCAST = "BROADCAST";
+    String ACTION_REFRESH = "REFRESH";
+    String TRUE = "T";
+    String FALSE = "F";
 
     String SHOW_DB_MSGS = "SHOWDBMSGS";
     String SHOW_DB_MEMBERS = "SHOWDBMEMS";
@@ -31,5 +35,5 @@ public interface Config
     //MEMBER
     String MEMBER_TABLE = "MEMBER";
     String MEMBER_NAME = "NAME";
-    String MEMBER_TOKEN = "TOKEN";
+    String NEW_MEMBER = "NEW_MEM";
 }

@@ -179,7 +179,7 @@ public class GCMClientManager implements Config
                 super.onPostExecute(result);
                 sendTask = null;
                 Log.d(TAG, "Result = " + result);
-                Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getActivity(), result, Toast.LENGTH_SHORT).show();
             }
         };
         sendTask.execute();

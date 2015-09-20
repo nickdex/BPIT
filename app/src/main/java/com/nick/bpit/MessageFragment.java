@@ -15,9 +15,6 @@ import com.nick.bpit.server.ServerMessageData;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class MessageFragment extends android.support.v4.app.ListFragment
 {
@@ -56,7 +53,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         */
-        messageAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMessageData.ITEMS);
+        messageAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_expandable_list_item_1, android.R.id.text1, ServerMessageData.ITEMS);
         // TODO: Change Adapter to display your content
         setListAdapter(messageAdapter);
 
@@ -93,7 +90,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
         {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).getTimestamp().toString());
+            mListener.onFragmentInteraction(ServerMessageData.ITEMS.get(position).getTimestamp());
         }
     }
 
