@@ -80,10 +80,7 @@ public class SendToAdminFragment extends android.support.v4.app.Fragment impleme
     {
         if (mListener != null)
         {
-            if(v.findViewById(R.id.message)!=null)
             mListener.onFragmentInteraction(TAG);
-            else
-                Toast.makeText(getActivity(), "Can't Sent Empty Message", Toast.LENGTH_SHORT).show();
         }
 
     }

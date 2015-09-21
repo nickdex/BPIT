@@ -150,16 +150,22 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         switch (Tag)
         {
             case SendToAdminFragment.TAG:
-                Bundle data = new Bundle();
-                MessageProcessor processor = MessageProcessor.getInstance();
-                SharedPreferences preferences = getSharedPreferences("OWNER", MODE_PRIVATE);
+
                 String message = ((EditText) findViewById(R.id.message)).getText().toString();
-                Log.d(TAG, "Message input by user = " + message);
-                data.putString(Config.ACTION, Config.ACTION_BROADCAST);
-                data.putString(Config.EMAIL, preferences.getString(Config.EMAIL, ""));
-                data.putString(Config.MESSAGE_BODY, message);
-                processor.processUpstreamMessage(data, MainActivity.this);
-                Toast.makeText(MainActivity.this, "Message Sent Successfully", Toast.LENGTH_SHORT).show();
+                if (!message.equals(""))
+                {
+                    Bundle data = new Bundle();
+                    MessageProcessor processor = MessageProcessor.getInstance();
+                    SharedPreferences preferences = getSharedPreferences("OWNER", MODE_PRIVATE);
+                    Log.d(TAG, "Message input by user = " + message);
+                    data.putString(Config.ACTION, Config.ACTION_BROADCAST);
+                    data.putString(Config.EMAIL, preferences.getString(Config.EMAIL, ""));
+                    data.putString(Config.MESSAGE_BODY, message);
+                    processor.processUpstreamMessage(data, MainActivity.this);
+                    Toast.makeText(MainActivity.this, "Message Sent Successfully", Toast.LENGTH_SHORT).show();
+                }
+                else
+                    Toast.makeText(MainActivity.this, "Can't Send Empty Message", Toast.LENGTH_SHORT).show();
                 break;
             case MessageFragment.TAG:
                 Log.d(TAG, "Click forwarded to activity");

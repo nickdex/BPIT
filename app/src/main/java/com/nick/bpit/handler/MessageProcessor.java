@@ -54,7 +54,7 @@ public class MessageProcessor implements Config
                     String email = data.getString(EMAIL);
                     if (email != null && email.equals("SERVER"))
                         createNotification(email, msg_body, context, NOTIFICATION_ID_MSG);
-                    createNotification("New Announcement", msg_body, context, NOTIFICATION_ID_MSG);
+                    createNotification(email, msg_body, context, NOTIFICATION_ID_MSG);
                     formatDownstream(data);
                     databaseHandler.insertMessage(data);
                     break;
