@@ -11,4 +11,6 @@
 	<string name="action_signOut">Sign Out</string>
 	<string name="refresh">Refresh</string>
 
+	<string name="send">Send</string>
+    <string name="msg_hint">Enter Message</string>
 </resources>

@@ -87,7 +87,7 @@ public class LoginActivity extends Activity implements GoogleApiClient.Connectio
         }
         else
         {
-            Toast.makeText(LoginActivity.this, "No User Found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this, "Check Network Connection", Toast.LENGTH_SHORT).show();
         }
     }
 

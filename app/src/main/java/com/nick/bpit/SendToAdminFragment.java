@@ -1,14 +1,12 @@
 package com.nick.bpit;
 
 import android.app.Activity;
-import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 
 public class SendToAdminFragment extends android.support.v4.app.Fragment implements View.OnClickListener
@@ -82,7 +80,10 @@ public class SendToAdminFragment extends android.support.v4.app.Fragment impleme
     {
         if (mListener != null)
         {
+            if(v.findViewById(R.id.message)!=null)
             mListener.onFragmentInteraction(TAG);
+            else
+                Toast.makeText(getActivity(), "Can't Sent Empty Message", Toast.LENGTH_SHORT).show();
         }
 
     }

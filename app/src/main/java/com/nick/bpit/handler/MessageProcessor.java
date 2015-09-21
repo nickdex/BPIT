@@ -5,22 +5,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
-import com.nick.bpit.MainActivity;
 import com.nick.bpit.R;
 import com.nick.bpit.gcm.GCMClientManager;
 import com.nick.bpit.server.Config;
-import com.nick.bpit.server.ServerMessageData;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
@@ -57,6 +51,9 @@ public class MessageProcessor implements Config
                 }
                 case ACTION_BROADCAST:
                 {
+                    String email = data.getString(EMAIL);
+                    if (email != null && email.equals("SERVER"))
+                        createNotification(email, msg_body, context, NOTIFICATION_ID_MSG);
                     createNotification("New Announcement", msg_body, context, NOTIFICATION_ID_MSG);
                     formatDownstream(data);
                     databaseHandler.insertMessage(data);
