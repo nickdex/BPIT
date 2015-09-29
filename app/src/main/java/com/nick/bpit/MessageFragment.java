@@ -7,8 +7,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nick.bpit.server.ServerMessageData;
@@ -27,6 +30,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     private AsyncTask<Void, Void, String> sendTask;
     public static ArrayAdapter messageAdapter;
     private OnFragmentInteractionListener mListener;
+    private boolean clicked = true;
     
     public MessageFragment()
     {
@@ -53,7 +57,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         */
-        messageAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_expandable_list_item_1, android.R.id.text1, ServerMessageData.ITEMS);
+        messageAdapter = new ArrayAdapter<>(getActivity(), R.layout.message_list_item, R.id.message_item, ServerMessageData.ITEMS);
         // TODO: Change Adapter to display your content
         setListAdapter(messageAdapter);
 
@@ -86,6 +90,18 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     {
         super.onListItemClick(l, v, position, id);
         Log.d(TAG, "item click detected");
+        TextView message = (TextView) v;
+        if(clicked)
+        {
+            message.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT));
+            clicked = false;
+        }
+        else
+        {
+            message.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, message.getMinHeight()));
+            clicked = true;
+        }
+
         if (null != mListener)
         {
             // Notify the active callbacks interface (the activity, if the

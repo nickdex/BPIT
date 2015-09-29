@@ -169,12 +169,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 else
                     Toast.makeText(MainActivity.this, "Can't Send Empty Message", Toast.LENGTH_SHORT).show();
                 break;
-            case MessageFragment.TAG:
-                Log.d(TAG, "Click forwarded to activity");
-                break;
-            case MemberFragment.TAG:
-                Log.d(TAG, "Click forwarded to activity");
-                break;
             default:
                 Log.w(TAG, Tag + "Yet to implement");
                 break;

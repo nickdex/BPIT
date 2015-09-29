@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+          android:id="@+id/message_item"
+          android:layout_width="match_parent"
+          android:layout_height="50dp"
+          android:minHeight="50dp"
+          android:textAppearance="?attr/textAppearanceListItem"
+          android:gravity="center_vertical"
+          android:paddingLeft="20dp"
+          android:paddingRight="20dp"
+          android:paddingTop="10dp"
+          android:paddingBottom="10dp"
+
+    />

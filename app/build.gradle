@@ -6,7 +6,7 @@ android {
         config {
             keyAlias 'BPITKey'
             keyPassword 'Excalibur9'
-            storeFile file('/home/nick/Key/bpitkey.jks')
+            storeFile file('D:\\Research\\Misc\\bpitkey.jks')
             storePassword 'Excalibur9'
         }
     }
@@ -14,10 +14,10 @@ android {
     buildToolsVersion "23.0.1"
     defaultConfig {
         applicationId "com.nick.bpit"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
-        versionName "0.9.10"
+        versionName "0.9.12"
         signingConfig signingConfigs.config
     }
     buildTypes {
