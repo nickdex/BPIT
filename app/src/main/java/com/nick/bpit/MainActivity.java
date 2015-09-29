@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         DatabaseHandler databaseHandler = new DatabaseHandler(this);
         databaseHandler.getAllMessages();
         databaseHandler.getAllMembers();
+        databaseHandler.close();
     }
 
     @Override
@@ -142,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         refresh_bundle.putString(Config.ACTION, Config.ACTION_REFRESH);
         MessageProcessor processor = MessageProcessor.getInstance();
         processor.processUpstreamMessage(refresh_bundle, this);
+
     }
 
     @Override
