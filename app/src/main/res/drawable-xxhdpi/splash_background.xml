@@ -4,7 +4,7 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/iron_man" />
+            android:src="@drawable/splash" />
     </item>
 
 
