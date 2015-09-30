@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,13 +23,13 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 public class MessageFragment extends android.support.v4.app.ListFragment
 {
     
+    public static final String TAG = "MessageFragment";
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_SECTION_NUMBER = "section_number";
-    private static GoogleCloudMessaging gcm;
-    public static final String TAG = "MessageFragment";
-    private AsyncTask<Void, Void, String> sendTask;
     public static ArrayAdapter messageAdapter;
+    private static GoogleCloudMessaging gcm;
+    private AsyncTask<Void, Void, String> sendTask;
     private OnFragmentInteractionListener mListener;
     private boolean clicked = true;
     
@@ -90,15 +91,20 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     {
         super.onListItemClick(l, v, position, id);
         Log.d(TAG, "item click detected");
-        TextView message = (TextView) v;
-        if(clicked)
+        RelativeLayout relativeLayout = (RelativeLayout) v;
+        TextView time = (TextView) relativeLayout.findViewById(R.id.message_time);
+        //TextView message = (TextView)relativeLayout.findViewById(R.id.message_item);
+        if (clicked)
         {
-            message.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT));
+            relativeLayout.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.WRAP_CONTENT));
+            time.setText(ServerMessageData.ITEMS.get(position).getTimestamp());
+            time.setVisibility(View.VISIBLE);
             clicked = false;
         }
         else
         {
-            message.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, message.getMinHeight()));
+            relativeLayout.setLayoutParams(new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, relativeLayout.getMinimumHeight()));
+            time.setVisibility(View.GONE);
             clicked = true;
         }
 

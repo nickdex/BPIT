@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="actionBarColor">#f44336</color>
+    <color name="messageItem">#e57373</color>
+    <color name="mainActivity">#e53935</color>
 </resources>

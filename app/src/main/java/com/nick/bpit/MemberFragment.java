@@ -49,7 +49,7 @@ public class MemberFragment extends android.support.v4.app.ListFragment
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         */
-        memberAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_activated_1, android.R.id.text1, ServerMemberData.ITEMS);
+        memberAdapter = new ArrayAdapter<>(getActivity(), R.layout.message_list_item, R.id.message_item, ServerMemberData.ITEMS);
         setListAdapter(memberAdapter);
     }
     
