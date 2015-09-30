@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -18,11 +19,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
-import com.nick.bpit.gcm.GCMClientManager;
+import com.nick.bpit.handler.DatabaseHandler;
 import com.nick.bpit.handler.MessageProcessor;
 import com.nick.bpit.server.Config;
 
@@ -34,33 +36,19 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     SectionsPagerAdapter mSectionsPagerAdapter;
     GoogleApiClient googleApiClient;
     ViewPager mViewPager;
-    private BroadcastReceiver messageReceiver = new BroadcastReceiver()
-    {
-        @Override
-        public void onReceive(Context context, Intent intent)
-        {
-            Log.i(TAG, "New Announcement");
-            MessageFragment.messageAdapter.notifyDataSetChanged();
-        }
-    };
-
-    public static void updateActivity(Bundle data)
-    {
-        Intent intent = new Intent("message");
-        intent.putExtras(data);
-        context.sendBroadcast(intent);
-    }
+    private BroadcastReceiver messageReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        context = getApplication();
+        context = getApplicationContext();
         googleApiClient = buildGoogleApiClient();
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        if (actionBar != null)
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -77,7 +65,8 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             @Override
             public void onPageSelected(int position)
             {
-                actionBar.setSelectedNavigationItem(position);
+                if (actionBar != null)
+                    actionBar.setSelectedNavigationItem(position);
             }
         });
 
@@ -88,9 +77,30 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
             // the adapter. Also specify this Activity object, which implements
             // the TabListener interface, as the callback (listener) for when
             // this tab is selected.
-            actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
+            if (actionBar != null)
+                actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
         }
 
+        messageReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                Log.i(TAG, "New Server Message");
+                MessageFragment.messageAdapter.notifyDataSetChanged();
+            }
+        };
+
+    }
+
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+        DatabaseHandler databaseHandler = new DatabaseHandler(this);
+        databaseHandler.getAllMessages();
+        databaseHandler.getAllMembers();
+        databaseHandler.close();
     }
 
     @Override
@@ -128,7 +138,11 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
     private void doRefresh()
     {
-        //TODO Refresh Logic
+        Bundle refresh_bundle = new Bundle();
+        refresh_bundle.putString(Config.ACTION, Config.ACTION_REFRESH);
+        MessageProcessor processor = MessageProcessor.getInstance();
+        processor.processUpstreamMessage(refresh_bundle, this);
+
     }
 
     @Override
@@ -137,22 +151,25 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
         switch (Tag)
         {
             case SendToAdminFragment.TAG:
-                Bundle data = new Bundle();
-                MessageProcessor processor = MessageProcessor.getInstance();
+
                 String message = ((EditText) findViewById(R.id.message)).getText().toString();
-                Log.d(TAG, "Message input by user = " + message);
-                data.putString(Config.ACTION, Config.ACTION_BROADCAST);
-                data.putString(Config.PAYLOAD_MESSAGE, message);
-                processor.processUpstreamMessage(data, MainActivity.this);
-                break;
-            case MessageFragment.TAG:
-                Log.d(TAG, "Click forwarded to activity");
-                break;
-            case MemberFragment.TAG:
-                Log.d(TAG, "Click forwarded to activity");
+                if (!message.equals(""))
+                {
+                    Bundle data = new Bundle();
+                    MessageProcessor processor = MessageProcessor.getInstance();
+                    SharedPreferences preferences = getSharedPreferences("OWNER", MODE_PRIVATE);
+                    Log.d(TAG, "Message input by user = " + message);
+                    data.putString(Config.ACTION, Config.ACTION_BROADCAST);
+                    data.putString(Config.EMAIL, preferences.getString(Config.EMAIL, ""));
+                    data.putString(Config.MESSAGE_BODY, message);
+                    processor.processUpstreamMessage(data, MainActivity.this);
+                    Toast.makeText(MainActivity.this, "Message Sent Successfully", Toast.LENGTH_SHORT).show();
+                }
+                else
+                    Toast.makeText(MainActivity.this, "Can't Send Empty Message", Toast.LENGTH_SHORT).show();
                 break;
             default:
-                Log.w(TAG, "Yet to implement");
+                Log.w(TAG, Tag + "Yet to implement");
                 break;
         }
     }
@@ -171,12 +188,11 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
-    protected void onStop()
+    protected void onPause()
     {
-        super.onStop();
+        super.onPause();
         context.unregisterReceiver(messageReceiver);
     }
-
 
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction)

@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,38 +12,31 @@ public class ServerMemberData implements Config
 {
     public final static String TAG = "ServerMemberData";
 
-    public static List<Member> ITEMS = new ArrayList<>();
+    public static LinkedList<Member> ITEMS = new LinkedList<>();
 
     public static Map<String, Member> ITEM_MAP = new HashMap<>();
 
     public static void addItem(Member item)
     {
-        ITEMS.add(item);
+        ITEMS.addFirst(item);
         ITEM_MAP.put(item.email, item);
     }
 
     public static class Member
     {
-        private Long timestamp;
+        private String timestamp;
         private String name;
         private String email;
-        private String token;
 
         public Member(Bundle data)
         {
             this.email = data.getString(EMAIL);
-            this.timestamp = data.getLong(TIMESTAMP);
+            this.timestamp = data.getString(TIMESTAMP);
             this.name = data.getString(MEMBER_NAME);
-            this.token = data.getString(MEMBER_TOKEN);
 
         }
 
-        public String getToken()
-        {
-            return token;
-        }
-
-        public Long getTimestamp()
+        public String getTimestamp()
         {
             return timestamp;
         }

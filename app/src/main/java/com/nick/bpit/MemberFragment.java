@@ -49,7 +49,7 @@ public class MemberFragment extends android.support.v4.app.ListFragment
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         */
-        memberAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ServerMemberData.ITEMS);
+        memberAdapter = new ArrayAdapter<>(getActivity(), R.layout.message_list_item, R.id.message_item, ServerMemberData.ITEMS);
         setListAdapter(memberAdapter);
     }
     
@@ -84,7 +84,7 @@ public class MemberFragment extends android.support.v4.app.ListFragment
         {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(ServerMemberData.ITEMS.get(position).getTimestamp().toString());
+            mListener.onFragmentInteraction(ServerMemberData.ITEMS.get(position).getEmail());
         }
     }
 

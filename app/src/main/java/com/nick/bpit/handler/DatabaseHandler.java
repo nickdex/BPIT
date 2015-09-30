@@ -36,8 +36,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
     @Override
     public void onCreate(SQLiteDatabase db)
     {
-        db.execSQL("create table if not exists " + MESSAGE_TABLE + " ( " + EMAIL + " TEXT, " + MESSAGE_BODY + " TEXT, " + TIMESTAMP + " INTEGER PRIMARY KEY " + ");");
-        db.execSQL("create table if not exists " + MEMBER_TABLE + " ( " + EMAIL + " TEXT PRIMARY KEY, " + MEMBER_NAME + " TEXT, " + MEMBER_TOKEN + " TEXT, " + TIMESTAMP + " INTEGER" + ");");
+        db.execSQL("create table if not exists " + MESSAGE_TABLE + " ( " + EMAIL + " TEXT, " + MESSAGE_BODY + " TEXT, " + TIMESTAMP + " DATETIME PRIMARY KEY " + ");");
+        db.execSQL("create table if not exists " + MEMBER_TABLE + " ( " + EMAIL + " TEXT PRIMARY KEY, " + MEMBER_NAME + " TEXT, " + TIMESTAMP + " DATETIME" + ");");
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         database = getReadableDatabase();
         Bundle data = new Bundle();
         String order = " DESC";
-        Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP + order);
+        Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP);
         //DEBUG_CODE
         if (DEBUG_FLAG)
             DatabaseUtils.dumpCursor(cursor);
@@ -76,11 +76,9 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
             do
             {
                 cursor.moveToNext();
+                //Row of Cursor
                 for (String col : cursor.getColumnNames())
-                    if (!TIMESTAMP.equals(col))
-                        data.putString(col, cursor.getString(cursor.getColumnIndex(col)));
-                    else
-                        data.putLong(col, cursor.getLong(cursor.getColumnIndex(col)));
+                    data.putString(col, cursor.getString(cursor.getColumnIndex(col)));
 
                 switch (table)
                 {
@@ -93,8 +91,45 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
                 }
                 data.clear();
             } while (!cursor.isLast());
+            cursor.close();
         }
-        //cursor.close();
+        database.close();
+    }
+
+    public Bundle getRefreshMessages(Bundle data)
+    {
+        return fillForSync(MESSAGE_TABLE, data);
+    }
+
+    public Bundle getRefreshMembers(Bundle data)
+    {
+        return fillForSync(MEMBER_TABLE, data);
+    }
+
+    private Bundle fillForSync(String table, Bundle refreshData)
+    {
+        database = getReadableDatabase();
+        int index = 1;
+        Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP);
+        if (cursor != null && cursor.getCount() > 0)
+        {
+            do
+            {
+                cursor.moveToNext();
+                switch (table)
+                {
+                    case MESSAGE_TABLE:
+                        refreshData.putString(TIMESTAMP + (index++), cursor.getString(2));
+                        break;
+                    case MEMBER_TABLE:
+                        refreshData.putString(EMAIL + (index++), cursor.getString(0));
+                        break;
+                }
+            } while (!cursor.isLast());
+            cursor.close();
+        }
+        database.close();
+        return refreshData;
     }
 
     public void insertMessage(Bundle data)
@@ -111,26 +146,21 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
     {
         database = getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        data = formatMessage(data);
 
         for (String key : data.keySet())
-            if (!TIMESTAMP.equals(key))
-                contentValues.put(key, data.getString(key));
-            else
-                contentValues.put(key, data.getLong(key));
-
-        switch (table)
-        {
-            case MESSAGE_TABLE:
-                ServerMessageData.addItem(new ServerMessageData.Message(data));
-                break;
-            case MEMBER_TABLE:
-                ServerMemberData.addItem(new ServerMemberData.Member(data));
-        }
+            contentValues.put(key, data.getString(key));
         try
         {
             if (database.insertOrThrow(table, null, contentValues) != -1)
                 Log.i(TAG, table + " inserted successfully");
+            switch (table)
+            {
+                case MESSAGE_TABLE:
+                    ServerMessageData.addItem(new ServerMessageData.Message(data));
+                    break;
+                case MEMBER_TABLE:
+                    ServerMemberData.addItem(new ServerMemberData.Member(data));
+            }
         }
         catch (SQLiteConstraintException e)
         {
@@ -140,20 +170,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         {
             Log.e(TAG, "SQL Operation Failure");
         }
+        database.close();
     }
-
-    private Bundle formatMessage(Bundle data)
-    {
-        Long timestamp = Long.parseLong(getDateTime());
-        Log.i(TAG, "Timestamp is " + timestamp);
-        data.putLong(TIMESTAMP, timestamp);
-        return data;
-    }
-
-    private String getDateTime()
-    {
-        DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);
-        return dateFormat.format(new Date());
-    }
-
 }
