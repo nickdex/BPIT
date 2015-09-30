@@ -98,8 +98,16 @@ public class MessageProcessor implements Config
             {
                 case ACTION_REFRESH:
                     DatabaseHandler databaseHandler = new DatabaseHandler(activity);
-                    databaseHandler.getAllMessages();
-                    databaseHandler.getAllMembers();
+                    //data = databaseHandler.getRefreshMessages();
+                    //data.putString(MODE, MESSAGE_TABLE);
+
+                    data = databaseHandler.getRefreshMembers(data);
+                    data.putString(MODE, MEMBER_TABLE);
+
+                    Log.i(TAG, "Refresh Bundle");
+                    showBundle(data);
+                    gcmClientManager.sendMessage(data);
+                    break;
                 default:
                     data = formatUpstream(data);
                     gcmClientManager.sendMessage(data);

@@ -29,6 +29,7 @@ public interface Config
     String ACTION = "ACTION";
     String TIMESTAMP = "TIMESTAMP";
     String EMAIL = "EMAIL";
+    String MODE = "MODE";
     //MESSAGES
     String MESSAGE_TABLE = "MESSAGE";
     String MESSAGE_BODY = "BODY";

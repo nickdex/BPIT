@@ -76,6 +76,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
             do
             {
                 cursor.moveToNext();
+                //Row of Cursor
                 for (String col : cursor.getColumnNames())
                     data.putString(col, cursor.getString(cursor.getColumnIndex(col)));
 
@@ -90,8 +91,44 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
                 }
                 data.clear();
             } while (!cursor.isLast());
+            cursor.close();}
+        database.close();
+    }
+
+    public Bundle getRefreshMessages(Bundle data)
+    {
+        return fillForSync(MESSAGE_TABLE, data);
+    }
+
+    public Bundle getRefreshMembers(Bundle data)
+    {
+        return fillForSync(MEMBER_TABLE, data);
+    }
+
+    private Bundle fillForSync(String table, Bundle refreshData)
+    {
+        database = getReadableDatabase();
+        int index = 1;
+        Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP);
+        if (cursor != null)
+        {
+            do
+            {
+                cursor.moveToNext();
+                switch (table)
+                {
+                    case MESSAGE_TABLE:
+                        refreshData.putString(MESSAGE_BODY + (index++), cursor.getString(2));
+                        break;
+                    case MEMBER_TABLE:
+                        refreshData.putString(EMAIL + (index++), cursor.getString(0));
+                        break;
+                }
+            } while (!cursor.isLast());
+            cursor.close();
         }
-        //cursor.close();
+        database.close();
+        return refreshData;
     }
 
     public void insertMessage(Bundle data)
@@ -132,5 +169,6 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         {
             Log.e(TAG, "SQL Operation Failure");
         }
+        database.close();
     }
 }
