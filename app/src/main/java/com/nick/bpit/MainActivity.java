@@ -138,7 +138,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
     private void doRefresh()
     {
-        //TODO Refresh Logic
         Bundle refresh_bundle = new Bundle();
         refresh_bundle.putString(Config.ACTION, Config.ACTION_REFRESH);
         MessageProcessor processor = MessageProcessor.getInstance();

@@ -91,7 +91,8 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
                 }
                 data.clear();
             } while (!cursor.isLast());
-            cursor.close();}
+            cursor.close();
+        }
         database.close();
     }
 
@@ -110,7 +111,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
         database = getReadableDatabase();
         int index = 1;
         Cursor cursor = database.query(table, null, null, null, null, null, TIMESTAMP);
-        if (cursor != null)
+        if (cursor != null && cursor.getCount() > 0)
         {
             do
             {
@@ -118,7 +119,7 @@ public class DatabaseHandler extends SQLiteOpenHelper implements Config
                 switch (table)
                 {
                     case MESSAGE_TABLE:
-                        refreshData.putString(MESSAGE_BODY + (index++), cursor.getString(2));
+                        refreshData.putString(TIMESTAMP + (index++), cursor.getString(2));
                         break;
                     case MEMBER_TABLE:
                         refreshData.putString(EMAIL + (index++), cursor.getString(0));

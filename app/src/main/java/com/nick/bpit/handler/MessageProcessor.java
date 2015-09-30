@@ -52,11 +52,10 @@ public class MessageProcessor implements Config
                 case ACTION_BROADCAST:
                 {
                     String email = data.getString(EMAIL);
-                    if (email != null && email.equals("SERVER"))
-                        createNotification(email, msg_body, context, NOTIFICATION_ID_MSG);
                     createNotification(email, msg_body, context, NOTIFICATION_ID_MSG);
                     formatDownstream(data);
-                    databaseHandler.insertMessage(data);
+                    if (email != null && !email.equals("SERVER"))
+                        databaseHandler.insertMessage(data);
                     break;
                 }
                 case ACTION_DEBUG:
@@ -98,15 +97,20 @@ public class MessageProcessor implements Config
             {
                 case ACTION_REFRESH:
                     DatabaseHandler databaseHandler = new DatabaseHandler(activity);
-                    //data = databaseHandler.getRefreshMessages();
-                    //data.putString(MODE, MESSAGE_TABLE);
+                    data = databaseHandler.getRefreshMessages(data);
+                    data.putString(MODE, MESSAGE_TABLE);
+                    Log.i(TAG, "Refresh Bundle");
+                    showBundle(data);
+                    gcmClientManager.sendMessage(data);
+      /*              data.clear();
 
+                    data.putString(ACTION, ACTION_REFRESH);
                     data = databaseHandler.getRefreshMembers(data);
                     data.putString(MODE, MEMBER_TABLE);
 
                     Log.i(TAG, "Refresh Bundle");
                     showBundle(data);
-                    gcmClientManager.sendMessage(data);
+                    gcmClientManager.sendMessage(data);*/
                     break;
                 default:
                     data = formatUpstream(data);
