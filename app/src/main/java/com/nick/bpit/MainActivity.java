@@ -2,11 +2,14 @@ package com.nick.bpit;
 
 import java.util.Locale;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.support.v4.app.ListFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -24,15 +27,15 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
-import com.nick.bpit.handler.DatabaseHandler;
 import com.nick.bpit.handler.MessageProcessor;
 import com.nick.bpit.server.Config;
+import com.nick.bpit.server.ServerMessageData;
 
 public class MainActivity extends AppCompatActivity implements ActionBar.TabListener, MessageFragment.OnFragmentInteractionListener, MemberFragment.OnFragmentInteractionListener, SendToAdminFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
 
     private static final String TAG = "Main Activity";
-    static public Context context;
+    static private Context context;
     SectionsPagerAdapter mSectionsPagerAdapter;
     GoogleApiClient googleApiClient;
     ViewPager mViewPager;
@@ -43,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         context = getApplicationContext();
         googleApiClient = buildGoogleApiClient();
         // Set up the action bar.
@@ -94,16 +98,6 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
     }
 
     @Override
-    protected void onStart()
-    {
-        super.onStart();
-        DatabaseHandler databaseHandler = new DatabaseHandler(this);
-        databaseHandler.getAllMessages();
-        databaseHandler.getAllMembers();
-        databaseHandler.close();
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -138,10 +132,49 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
 
     private void doRefresh()
     {
+        final ListFragment activeFrag = (ListFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":" + mViewPager.getCurrentItem());
+        activeFrag.setListShown(false);
         Bundle refresh_bundle = new Bundle();
         refresh_bundle.putString(Config.ACTION, Config.ACTION_REFRESH);
         MessageProcessor processor = MessageProcessor.getInstance();
-        processor.processUpstreamMessage(refresh_bundle, this);
+        processor.processUpstreamMessage(refresh_bundle, MainActivity.this);
+        new AsyncTask<Void, Void, Boolean>()
+        {
+            @Override
+            protected Boolean doInBackground(Void... params)
+            {
+                int timeToLive = 10;
+                MessageProcessor processor = MessageProcessor.getInstance();
+                for (int i = 0; i < timeToLive && !processor.actionComplete; i++)
+                {
+                    try
+                    {
+                        Thread.sleep(1000);
+                        Log.d(TAG, "action in progress");
+                    }
+                    catch (Exception e)
+                    {
+                        Log.w(TAG, "Thread sleep error");
+                    }
+                    if (processor.actionComplete)
+                        break;
+
+                }
+                return processor.actionComplete;
+            }
+
+            @Override
+            protected void onPostExecute(Boolean aBoolean)
+            {
+                super.onPostExecute(aBoolean);
+                if (!aBoolean)
+                    Toast.makeText(MainActivity.this, "Check Internet Connection and Try Again", Toast.LENGTH_SHORT).show();
+                else
+                    MessageProcessor.getInstance().actionComplete=false;
+
+                activeFrag.setListShown(true);
+            }
+        }.execute();
 
     }
 

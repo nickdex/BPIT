@@ -2,20 +2,30 @@ package com.nick.bpit;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 
 public class SendToAdminFragment extends android.support.v4.app.Fragment implements View.OnClickListener
 {
-    private static final String ARG_SECTION_NUMBER = "section_number";
     public static final String TAG = "SendToAdminFragment";
-    
+    private static final String ARG_SECTION_NUMBER = "section_number";
+    ProgressBar progressBar;
+    Handler handler;
+    int progressStatus;
 
     private OnFragmentInteractionListener mListener;
+
+    public SendToAdminFragment()
+    {
+        // Required empty public constructor
+    }
 
     public static SendToAdminFragment newInstance(int sectionNumber)
     {
@@ -24,11 +34,6 @@ public class SendToAdminFragment extends android.support.v4.app.Fragment impleme
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    public SendToAdminFragment()
-    {
-        // Required empty public constructor
     }
     
     @Override
@@ -48,9 +53,9 @@ public class SendToAdminFragment extends android.support.v4.app.Fragment impleme
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_send_to_admin, container, false);
-        (v.findViewById(R.id.send)).setOnClickListener(this);
-        return v;
+        View view = inflater.inflate(R.layout.fragment_send_to_admin, container, false);
+        (view.findViewById(R.id.send)).setOnClickListener(this);
+        return view;
     }
 
     @Override
@@ -87,7 +92,7 @@ public class SendToAdminFragment extends android.support.v4.app.Fragment impleme
 
     public interface OnFragmentInteractionListener
     {
-         void onFragmentInteraction(String id);
+        void onFragmentInteraction(String id);
     }
     
 }

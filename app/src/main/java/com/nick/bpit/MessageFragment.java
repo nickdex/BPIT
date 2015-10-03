@@ -1,20 +1,17 @@
 package com.nick.bpit;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.nick.bpit.handler.DatabaseHandler;
 import com.nick.bpit.server.ServerMessageData;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -32,12 +29,11 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     private AsyncTask<Void, Void, String> sendTask;
     private OnFragmentInteractionListener mListener;
     private boolean clicked = true;
-    
+
     public MessageFragment()
     {
     }
 
-    // TODO: Rename and change types of parameters
     public static MessageFragment newInstance(int sectionNumber)
     {
         MessageFragment fragment = new MessageFragment();
@@ -51,19 +47,22 @@ public class MessageFragment extends android.support.v4.app.ListFragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-
-       /* if (getArguments() != null)
-        {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-        */
         messageAdapter = new ArrayAdapter<>(getActivity(), R.layout.message_list_item, R.id.message_item, ServerMessageData.ITEMS);
-        // TODO: Change Adapter to display your content
         setListAdapter(messageAdapter);
 
     }
 
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        setListShown(false);
+        DatabaseHandler databaseHandler = new DatabaseHandler(getActivity());
+        databaseHandler.getAllMessages();
+        databaseHandler.getAllMembers();
+        databaseHandler.close();
+        setListShown(true);
+    }
 
     @Override
     public void onAttach(Activity activity)
@@ -78,7 +77,7 @@ public class MessageFragment extends android.support.v4.app.ListFragment
             throw new ClassCastException(activity.toString() + " must implement OnFragmentInteractionListener");
         }
     }
-    
+
     @Override
     public void onDetach()
     {

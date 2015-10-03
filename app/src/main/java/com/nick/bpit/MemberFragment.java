@@ -7,6 +7,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
+import com.nick.bpit.handler.DatabaseHandler;
 import com.nick.bpit.server.ServerMemberData;
 
 /**
@@ -53,7 +54,18 @@ public class MemberFragment extends android.support.v4.app.ListFragment
         setListAdapter(memberAdapter);
     }
     
-    
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        setListShown(false);
+        DatabaseHandler databaseHandler = new DatabaseHandler(getActivity());
+        databaseHandler.getAllMessages();
+        databaseHandler.getAllMembers();
+        databaseHandler.close();
+        setListShown(true);
+    }
+
     @Override
     public void onAttach(Activity activity)
     {

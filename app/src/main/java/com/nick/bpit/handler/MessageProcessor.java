@@ -23,6 +23,7 @@ public class MessageProcessor implements Config
     public static final int NOTIFICATION_ID_MSG = 1337;
     public static final int NOTIFICATION_ID_MEM = 1338;
     private static final String TAG = "MessageProcessor";
+    public boolean actionComplete = false;
     //Singleton, Check whether this will cause conflicts when downstreaming and upstreaming simultaneously
     private static MessageProcessor instance = new MessageProcessor();
 
@@ -56,6 +57,7 @@ public class MessageProcessor implements Config
                     formatDownstream(data);
                     if (email != null && !email.equals("SERVER"))
                         databaseHandler.insertMessage(data);
+                    actionComplete = true;
                     break;
                 }
                 case ACTION_DEBUG:
