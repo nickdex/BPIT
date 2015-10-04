@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v4.app.ListFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -120,62 +121,9 @@ public class MainActivity extends AppCompatActivity implements ActionBar.TabList
                 setResult(RESULT_OK, intent);
                 finish();
                 break;
-            case R.id.refresh:
-                doRefresh();
-                break;
-            case R.id.action_settings:
-                return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void doRefresh()
-    {
-        final ListFragment activeFrag = (ListFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":" + mViewPager.getCurrentItem());
-        activeFrag.setListShown(false);
-        Bundle refresh_bundle = new Bundle();
-        refresh_bundle.putString(Config.ACTION, Config.ACTION_REFRESH);
-        MessageProcessor processor = MessageProcessor.getInstance();
-        processor.processUpstreamMessage(refresh_bundle, MainActivity.this);
-        new AsyncTask<Void, Void, Boolean>()
-        {
-            @Override
-            protected Boolean doInBackground(Void... params)
-            {
-                int timeToLive = 10;
-                MessageProcessor processor = MessageProcessor.getInstance();
-                for (int i = 0; i < timeToLive && !processor.actionComplete; i++)
-                {
-                    try
-                    {
-                        Thread.sleep(1000);
-                        Log.d(TAG, "action in progress");
-                    }
-                    catch (Exception e)
-                    {
-                        Log.w(TAG, "Thread sleep error");
-                    }
-                    if (processor.actionComplete)
-                        break;
-
-                }
-                return processor.actionComplete;
-            }
-
-            @Override
-            protected void onPostExecute(Boolean aBoolean)
-            {
-                super.onPostExecute(aBoolean);
-                if (!aBoolean)
-                    Toast.makeText(MainActivity.this, "Check Internet Connection and Try Again", Toast.LENGTH_SHORT).show();
-                else
-                    MessageProcessor.getInstance().actionComplete=false;
-
-                activeFrag.setListShown(true);
-            }
-        }.execute();
-
     }
 
     @Override
